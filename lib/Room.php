@@ -56,6 +56,7 @@ class Room {
 	public const GROUP_CALL = 2;
 	public const PUBLIC_CALL = 3;
 	public const CHANGELOG_CONVERSATION = 4;
+	public const NOTES_CONVERSATION = 5;
 
 	public const READ_WRITE = 0;
 	public const READ_ONLY = 1;

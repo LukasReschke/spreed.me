@@ -82,6 +82,7 @@ export default {
 				participantFlags: PARTICIPANT.CALL_FLAG.DISCONNECTED,
 				participantType: PARTICIPANT.TYPE.USER,
 				readOnly: CONVERSATION.STATE.READ_ONLY,
+				type: CONVERSATION.TYPE.GROUP,
 				hasCall: false,
 				canStartCall: false,
 				lobbyState: WEBINAR.LOBBY.NONE,
@@ -153,6 +154,7 @@ export default {
 
 		showStartCallButton() {
 			return this.conversation.readOnly === CONVERSATION.STATE.READ_WRITE
+				&& this.conversation.type !== CONVERSATION.TYPE.NOTES
 				&& this.participant.inCall === PARTICIPANT.CALL_FLAG.DISCONNECTED
 		},
 

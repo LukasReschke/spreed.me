@@ -34,6 +34,8 @@
 	</div>
 	<div v-else-if="isChangelog"
 		class="avatar-32px icon icon-changelog" />
+	<div v-else-if="isNotes"
+		class="avatar-32px icon icon-notes" />
 	<div v-else
 		class="avatar-32px bot">
 		&gt;_
@@ -66,6 +68,9 @@ export default {
 	computed: {
 		isChangelog() {
 			return this.authorType === 'bots' && this.authorId === 'changelog'
+		},
+		isNotes() {
+			return this.authorType === 'bots' && this.authorId === 'notes'
 		},
 		isUser() {
 			return this.authorType === 'users'

@@ -7,6 +7,7 @@ title: Constants
 * `2` group
 * `3` public
 * `4` changelog
+* `5` notes
 
 ## Read-only states
 * `0` read-write
@@ -35,7 +36,7 @@ title: Constants
 ## Actor types of chat messages
 * `guests` - guest users
 * `users` - logged-in users
-* `bots` - used by commands (actor-id is the used `/command`) and the changelog conversation (actor-id is `changelog`)
+* `bots` - used by commands (actor-id is the used `/command`), the changelog conversation (actor-id is `changelog`) and the notes conversation (actor-id is `notes`)
 
 ## Webinary lobby states
 * `0` no lobby

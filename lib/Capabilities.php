@@ -32,17 +32,13 @@ use OCP\IUserSession;
 
 class Capabilities implements IPublicCapability {
 
-	/** @var IConfig */
-	protected $serverConfig;
 	/** @var Config */
 	protected $talkConfig;
 	/** @var IUserSession */
 	protected $userSession;
 
-	public function __construct(IConfig $serverConfig,
-								Config $talkConfig,
+	public function __construct(Config $talkConfig,
 								IUserSession $userSession) {
-		$this->serverConfig = $serverConfig;
 		$this->talkConfig = $talkConfig;
 		$this->userSession = $userSession;
 	}
@@ -53,23 +49,7 @@ class Capabilities implements IPublicCapability {
 			return [];
 		}
 
-		$maxChatLength = 1000;
-		if (version_compare($this->serverConfig->getSystemValueString('version', '0.0.0'), '16.0.2', '>=')) {
-			$maxChatLength = ChatManager::MAX_CHAT_LENGTH;
-		}
-
-		$attachments = [
-			'allowed' => $user instanceof IUser,
-		];
-		if ($user instanceof IUser) {
-			$attachments['folder'] = $this->talkConfig->getAttachmentFolder($user->getUID());
-		}
-
-		$conversations = [
-			'can-create' => $user instanceof IUser && !$this->talkConfig->isNotAllowedToCreateConversations($user),
-		];
-
-		return [
+		$capabilities = [
 			'spreed' => [
 				'features' => [
 					'audio',
@@ -99,13 +79,30 @@ class Capabilities implements IPublicCapability {
 					'chat-reference-id',
 				],
 				'config' => [
-					'attachments' => $attachments,
-					'chat' => [
-						'max-length' => $maxChatLength,
+					'attachments' => [
+						'allowed' => false,
 					],
-					'conversations' => $conversations,
+					'chat' => [
+						'max-length' => ChatManager::MAX_CHAT_LENGTH,
+					],
+					'conversations' => [
+						'can-create' => false
+					],
 				],
 			],
 		];
+
+		if ($user instanceof IUser) {
+			$capabilities['spreed']['features'][] = 'notes';
+
+			$capabilities['spreed']['config']['attachments'] = [
+				'allowed' => true,
+				'folder' => $this->talkConfig->getAttachmentFolder($user->getUID()),
+			];
+
+			$capabilities['spreed']['config']['conversations']['can-create'] = !$this->talkConfig->isNotAllowedToCreateConversations($user);
+		}
+
+		return $capabilities;
 	}
 }

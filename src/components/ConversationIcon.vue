@@ -95,6 +95,8 @@ export default {
 				return 'icon-contacts'
 			} else if (this.item.type === CONVERSATION.TYPE.PUBLIC) {
 				return 'icon-public'
+			} else if (this.item.type === CONVERSATION.TYPE.NOTES) {
+				return 'icon-notes'
 			}
 
 			return ''
@@ -118,6 +120,10 @@ $icon-size: 44px;
 		background-color: var(--color-background-darker);
 
 		&.icon-changelog {
+			background-size: $icon-size;
+		}
+
+		&.icon-notes {
 			background-size: $icon-size;
 		}
 

@@ -27,7 +27,6 @@ namespace OCA\Talk\Tests\Unit;
 use OCA\Talk\Capabilities;
 use OCA\Talk\Config;
 use OCP\Capabilities\IPublicCapability;
-use OCP\IConfig;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -35,8 +34,6 @@ use Test\TestCase;
 
 class CapabilitiesTest extends TestCase {
 
-	/** @var IConfig|MockObject */
-	protected $serverConfig;
 	/** @var Config|MockObject */
 	protected $talkConfig;
 	/** @var IUserSession|MockObject */
@@ -44,14 +41,12 @@ class CapabilitiesTest extends TestCase {
 
 	public function setUp(): void {
 		parent::setUp();
-		$this->serverConfig = $this->createMock(IConfig::class);
 		$this->talkConfig = $this->createMock(Config::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 	}
 
 	public function testGetCapabilitiesGuest(): void {
 		$capabilities = new Capabilities(
-			$this->serverConfig,
 			$this->talkConfig,
 			$this->userSession
 		);
@@ -62,11 +57,6 @@ class CapabilitiesTest extends TestCase {
 
 		$this->talkConfig->expects($this->never())
 			->method('isDisabledForUser');
-
-		$this->serverConfig->expects($this->once())
-			->method('getSystemValueString')
-			->with('version', '0.0.0')
-			->willReturn('16.0.1');
 
 		$this->assertInstanceOf(IPublicCapability::class, $capabilities);
 		$this->assertSame([
@@ -103,7 +93,7 @@ class CapabilitiesTest extends TestCase {
 						'allowed' => false,
 					],
 					'chat' => [
-						'max-length' => 1000,
+						'max-length' => 32000,
 					],
 					'conversations' => [
 						'can-create' => false,
@@ -127,7 +117,6 @@ class CapabilitiesTest extends TestCase {
 	 */
 	public function testGetCapabilitiesUserAllowed(bool $isNotAllowed, bool $canCreate): void {
 		$capabilities = new Capabilities(
-			$this->serverConfig,
 			$this->talkConfig,
 			$this->userSession
 		);
@@ -154,11 +143,6 @@ class CapabilitiesTest extends TestCase {
 			->method('isNotAllowedToCreateConversations')
 			->with($user)
 			->willReturn($isNotAllowed);
-
-		$this->serverConfig->expects($this->once())
-			->method('getSystemValueString')
-			->with('version', '0.0.0')
-			->willReturn('16.0.2');
 
 		$this->assertInstanceOf(IPublicCapability::class, $capabilities);
 		$this->assertSame([
@@ -189,6 +173,7 @@ class CapabilitiesTest extends TestCase {
 					'circles-support',
 					'force-mute',
 					'chat-reference-id',
+					'notes',
 				],
 				'config' => [
 					'attachments' => [
@@ -208,7 +193,6 @@ class CapabilitiesTest extends TestCase {
 
 	public function testGetCapabilitiesUserDisallowed(): void {
 		$capabilities = new Capabilities(
-			$this->serverConfig,
 			$this->talkConfig,
 			$this->userSession
 		);
@@ -222,9 +206,6 @@ class CapabilitiesTest extends TestCase {
 			->method('isDisabledForUser')
 			->with($user)
 			->willReturn(true);
-
-		$this->serverConfig->expects($this->never())
-			->method('getSystemValueString');
 
 		$this->assertInstanceOf(IPublicCapability::class, $capabilities);
 		$this->assertSame([], $capabilities->getCapabilities());

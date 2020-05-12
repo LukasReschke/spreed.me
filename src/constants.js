@@ -32,6 +32,7 @@ export const CONVERSATION = {
 		GROUP: 2,
 		PUBLIC: 3,
 		CHANGELOG: 4,
+		NOTES: 5,
 	},
 }
 export const PARTICIPANT = {

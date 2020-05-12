@@ -20,7 +20,7 @@ declare(strict_types=1);
  *
  */
 
-namespace OCA\Talk\Chat\Changelog;
+namespace OCA\Talk\Chat\SpecialRoom;
 
 use OCA\Talk\Controller\RoomController;
 use OCA\Talk\Events\UserEvent;
@@ -46,6 +46,8 @@ class Listener {
 	}
 
 	public function preGetRooms(string $userId): void {
+		$this->manager->createNotesIfNeeded($userId);
+
 		if (!$this->manager->userHasNewChangelog($userId)) {
 			return;
 		}

@@ -87,6 +87,11 @@ trait TInitialState {
 			} catch (NoUserException $e) {
 			}
 		}
+
+		$this->initialStateService->provideInitialState(
+			'talk', 'my_notes',
+			$this->serverConfig->getUserValue($user->getUID(), 'spreed', 'notes', '0') !== '0'
+		);
 	}
 
 	protected function publishInitialStateForGuest(): void {
@@ -106,6 +111,11 @@ trait TInitialState {
 		$this->initialStateService->provideInitialState(
 			'talk', 'attachment_folder',
 			''
+		);
+
+		$this->initialStateService->provideInitialState(
+			'talk', 'my_notes',
+			false
 		);
 	}
 }

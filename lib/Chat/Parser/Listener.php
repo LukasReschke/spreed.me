@@ -50,13 +50,23 @@ class Listener {
 			}
 
 			/** @var Changelog $parser */
-			$parser = \OC::$server->query(Changelog::class);
+			$changelogParser = \OC::$server->query(Changelog::class);
 			try {
-				$parser->parseMessage($message);
+				$changelogParser->parseMessage($message);
 				$event->stopPropagation();
 			} catch (\OutOfBoundsException $e) {
 				// Unknown message, ignore
 			}
+
+			/** @var Notes $parser */
+			$notesParser = \OC::$server->query(Notes::class);
+			try {
+				$notesParser->parseMessage($message);
+				$event->stopPropagation();
+			} catch (\OutOfBoundsException $e) {
+				// Unknown message, ignore
+			}
+
 		}, -75);
 
 		$dispatcher->addListener(MessageParser::EVENT_MESSAGE_PARSE, static function(ChatMessageEvent $event) {

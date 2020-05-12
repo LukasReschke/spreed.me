@@ -63,7 +63,7 @@ class RemoveEmptyRooms extends TimedJob {
 	}
 
 	public function callback(Room $room): void {
-		if ($room->getType() === Room::CHANGELOG_CONVERSATION) {
+		if ($room->getType() === Room::CHANGELOG_CONVERSATION || $room->getType() === Room::NOTES_CONVERSATION) {
 			return;
 		}
 

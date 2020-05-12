@@ -24,7 +24,7 @@ namespace OCA\Talk\AppInfo;
 
 use OCA\Talk\Activity\Listener as ActivityListener;
 use OCA\Talk\Capabilities;
-use OCA\Talk\Chat\Changelog\Listener as ChangelogListener;
+use OCA\Talk\Chat\SpecialRoom\Listener as SpecialRoomListener;
 use OCA\Talk\Chat\ChatManager;
 use OCA\Talk\Chat\Command\Listener as CommandListener;
 use OCA\Talk\Chat\Parser\Listener as ParserListener;
@@ -103,7 +103,7 @@ class Application extends App {
 		CommandListener::register($dispatcher);
 		CollaboratorsListener::register($dispatcher);
 		ResourceListener::register($dispatcher);
-		ChangelogListener::register($dispatcher);
+		SpecialRoomListener::register($dispatcher);
 		ShareListener::register($dispatcher);
 		Operation::register($dispatcher);
 

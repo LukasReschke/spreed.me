@@ -36,9 +36,9 @@ use Psr\Http\Message\ResponseInterface;
  */
 class FeatureContext implements Context, SnippetAcceptingContext {
 
-	/** @var array[] */
+	/** @var string[] */
 	protected static $identifierToToken;
-	/** @var array[] */
+	/** @var string[] */
 	protected static $tokenToIdentifier;
 	/** @var array[] */
 	protected static $sessionIdToUser;
@@ -135,7 +135,7 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 		$rooms = $this->getDataFromResponse($this->response);
 
 		$rooms = array_filter($rooms, function($room) {
-			return $room['type'] !== 4;
+			return $room['type'] !== 4 && $room['type'] !== 5;
 		});
 
 		if ($formData === null) {
@@ -179,6 +179,43 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 	}
 
 	/**
+	 * @Then /^user "([^"]*)" has (the|no) notes conversation$/
+	 *
+	 * @param string $user
+	 * @param string $hasConversation
+	 */
+	public function userHasNotesConversation(string $user, string $hasConversation): void {
+		$this->setCurrentUser($user);
+		$this->sendRequest('GET', '/apps/spreed/api/v1/room');
+		$this->assertStatusCode($this->response, 200);
+
+		$rooms = $this->getDataFromResponse($this->response);
+
+		$rooms = array_filter($rooms, function($room) {
+			return $room['type'] === 5;
+		});
+
+		$notesIndex = $user . '-notes';
+		if ($hasConversation === 'the') {
+			Assert::assertCount(1, $rooms);
+			$room = array_pop($rooms);
+
+			self::$identifierToToken[$notesIndex] = $room['token'];
+			self::$tokenToIdentifier[$room['token']] = $notesIndex;
+		} else {
+			Assert::assertEmpty($rooms);
+
+			if (isset(self::$identifierToToken[$notesIndex])) {
+				$notesToken = self::$identifierToToken[$notesIndex];
+				unset(
+					self::$tokenToIdentifier[$notesToken],
+					self::$identifierToToken[$notesIndex]
+				);
+			}
+		}
+	}
+
+	/**
 	 * @Then /^user "([^"]*)" (is|is not) participant of room "([^"]*)"$/
 	 *
 	 * @param string $user
@@ -201,7 +238,7 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 		$rooms = $this->getDataFromResponse($this->response);
 
 		$rooms = array_filter($rooms, function($room) {
-			return $room['type'] !== 4;
+			return $room['type'] !== 4 && $room['type'] !== 5;
 		});
 
 		if ($isParticipant) {
@@ -247,6 +284,23 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 		}
 
 		$this->assertStatusCode($this->response, 404);
+	}
+
+	/**
+	 * @Then /^user "([^"]*)" sets setting "([^"]*)" to "([^"]*)" with (\d+)$/
+	 *
+	 * @param string $user
+	 * @param string $setting
+	 * @param string $value
+	 * @param int $statusCode
+	 */
+	public function userSetsSetting(string $user, string $setting, string $value, int $statusCode): void {
+		$this->setCurrentUser($user);
+		$this->sendRequest('POST', '/apps/spreed/api/v1/settings/user', [
+			'key' => $setting,
+			'value' => $value,
+		]);
+		$this->assertStatusCode($this->response, $statusCode);
 	}
 
 	/**
@@ -812,7 +866,7 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 				'actorDisplayName' => $message['actorDisplayName'],
 				// TODO test timestamp; it may require using Runkit, php-timecop
 				// or something like that.
-				'message' => $message['message'],
+				'message' => str_replace("\n", '\n', $message['message']),
 				'messageParameters' => json_encode($message['messageParameters']),
 			];
 			if ($includeParents) {
@@ -985,12 +1039,13 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 		$response = $this->userExists($user);
 		if ($response->getStatusCode() !== 200) {
 			$this->createUser($user);
-			// Set a display name different than the user ID to be able to
-			// ensure in the tests that the right value was returned.
-			$this->setUserDisplayName($user);
-			$response = $this->userExists($user);
-			$this->assertStatusCode($response, 200);
 		}
+
+		// Set a display name different than the user ID to be able to
+		// ensure in the tests that the right value was returned.
+		$this->setUserDisplayName($user);
+		$response = $this->userExists($user);
+		$this->assertStatusCode($response, 200);
 	}
 
 	private function userExists($user) {

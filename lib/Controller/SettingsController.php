@@ -25,6 +25,10 @@ declare(strict_types=1);
 namespace OCA\Talk\Controller;
 
 use OCA\Files_Sharing\SharedStorage;
+use OCA\Talk\Chat\SpecialRoom\Manager as SpecialRoomManager;
+use OCA\Talk\Exceptions\RoomNotFoundException;
+use OCA\Talk\Manager;
+use OCA\Talk\Room;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\OCSController;
@@ -38,6 +42,10 @@ use OCP\IRequest;
 
 class SettingsController extends OCSController {
 
+	/** @var Manager */
+	protected $talkManager;
+	/** @var SpecialRoomManager */
+	protected $specialRoomManager;
 	/** @var IRootFolder */
 	protected $rootFolder;
 	/** @var IConfig */
@@ -49,11 +57,15 @@ class SettingsController extends OCSController {
 
 	public function __construct(string $appName,
 								IRequest $request,
+								Manager $talkManager,
+								SpecialRoomManager $specialRoomManager,
 								IRootFolder $rootFolder,
 								IConfig $config,
 								ILogger $logger,
 								?string $userId) {
 		parent::__construct($appName, $request);
+		$this->talkManager = $talkManager;
+		$this->specialRoomManager = $specialRoomManager;
 		$this->rootFolder = $rootFolder;
 		$this->config = $config;
 		$this->logger = $logger;
@@ -72,7 +84,25 @@ class SettingsController extends OCSController {
 			return new DataResponse([], Http::STATUS_BAD_REQUEST);
 		}
 
+		if ($key === 'notes' && $value === '1') {
+			// Setting it to 2 so createNotesIfNeeded can create the conversation and set it to 1 again
+			$value = '2';
+		}
+
 		$this->config->setUserValue($this->userId, 'spreed', $key, $value);
+
+
+		if ($key === 'notes') {
+			if ($value === '0') {
+				try {
+					$room = $this->talkManager->getSpecialRoom($this->userId, Room::NOTES_CONVERSATION, false);
+					$room->deleteRoom();
+				} catch (RoomNotFoundException $e) {
+				}
+			} else {
+				$this->specialRoomManager->createNotesIfNeeded($this->userId);
+			}
+		}
 
 		return new DataResponse();
 	}
@@ -94,6 +124,9 @@ class SettingsController extends OCSController {
 				$this->logger->logException($e);
 			}
 			return false;
+		}
+		if ($setting === 'notes') {
+			return $value === '0' || $value === '1';
 		}
 
 		return false;

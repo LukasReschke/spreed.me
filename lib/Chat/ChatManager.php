@@ -115,8 +115,8 @@ class ChatManager {
 	 * @param string $message
 	 * @return IComment
 	 */
-	public function addChangelogMessage(Room $chat, string $message): IComment {
-		$comment = $this->commentsManager->create('guests', 'changelog', 'chat', (string) $chat->getId());
+	public function addSpecialMessage(Room $chat, string $type, string $message): IComment {
+		$comment = $this->commentsManager->create('guests', $type, 'chat', (string) $chat->getId());
 
 		$comment->setMessage($message, self::MAX_CHAT_LENGTH);
 		$comment->setCreationDateTime($this->timeFactory->getDateTime());

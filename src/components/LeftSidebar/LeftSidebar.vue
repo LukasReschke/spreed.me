@@ -84,12 +84,20 @@
 		</ul>
 
 		<AppNavigationSettings>
-			<label>{{ t('spreed', 'Default location for attachments') }}</label>
-			<input
+			<label for="attachment_folder">{{ t('spreed', 'Default location for attachments') }}</label>
+			<input id="attachment_folder"
 				type="text"
 				:value="attachmentFolder"
 				:disabled="attachmentFolderLoading"
 				@click="selectAttachmentFolder">
+
+			<input id="my_notes"
+				:checked="myNotesEnabled"
+				value="1"
+				type="checkbox"
+				class="checkbox action-checkbox__checkbox"
+				@change="toggleMyNotes">
+			<label for="my_notes" class="action-checkbox__label">{{ t('spreed', 'My notes') }}</label>
 		</AppNavigationSettings>
 	</AppNavigation>
 </template>
@@ -108,7 +116,10 @@ import {
 	createGroupConversation, createOneToOneConversation,
 	searchPossibleConversations,
 } from '../../services/conversationsService'
-import { setAttachmentFolder } from '../../services/settingsService'
+import {
+	setAttachmentFolder,
+	toggleMyNotes,
+} from '../../services/settingsService'
 import { CONVERSATION } from '../../constants'
 import { loadState } from '@nextcloud/initial-state'
 import NewGroupConversation from './NewGroupConversation/NewGroupConversation'
@@ -140,6 +151,7 @@ export default {
 			isCirclesEnabled: loadState('talk', 'circles_enabled'),
 			canStartConversations: loadState('talk', 'start_conversations'),
 			attachmentFolderLoading: true,
+			myNotesEnabled: loadState('talk', 'my_notes'),
 		}
 	},
 
@@ -284,6 +296,12 @@ export default {
 					}
 					this.attachmentFolderLoading = false
 				})
+		},
+
+		async toggleMyNotes() {
+			this.myNotesEnabled = !this.myNotesEnabled
+			await toggleMyNotes(this.myNotesEnabled)
+			EventBus.$emit('shouldRefreshConversations')
 		},
 	},
 }

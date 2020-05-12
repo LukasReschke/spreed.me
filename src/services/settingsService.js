@@ -36,6 +36,20 @@ const setAttachmentFolder = async function(path) {
 	})
 }
 
+/**
+ * Gets the conversation token for a given file id
+ *
+ * @param {bool} enabled The name of the folder
+ * @returns {Object} The axios response
+ */
+const toggleMyNotes = async function(enabled) {
+	return axios.post(generateOcsUrl('apps/spreed/api/v1/settings', 2) + 'user', {
+		key: 'notes',
+		value: enabled ? '1' : '0',
+	})
+}
+
 export {
 	setAttachmentFolder,
+	toggleMyNotes,
 }

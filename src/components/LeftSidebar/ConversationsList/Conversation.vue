@@ -56,28 +56,30 @@
 				{{ t('spreed', 'Copy link') }}
 			</ActionButton>
 
-			<ActionSeparator />
+			<template v-if="!isMyNotesConversation">
+				<ActionSeparator />
 
-			<ActionText
-				:title="t('spreed', 'Chat notifications')" />
-			<ActionButton
-				:class="{'forced-active': isNotifyAlways}"
-				icon="icon-sound"
-				@click.prevent.exact="setNotificationLevel(1)">
-				{{ t('spreed', 'All messages') }}
-			</ActionButton>
-			<ActionButton
-				:class="{'forced-active': isNotifyMention}"
-				icon="icon-user"
-				@click.prevent.exact="setNotificationLevel(2)">
-				{{ t('spreed', '@-mentions only') }}
-			</ActionButton>
-			<ActionButton
-				:class="{'forced-active': isNotifyNever}"
-				icon="icon-sound-off"
-				@click.prevent.exact="setNotificationLevel(3)">
-				{{ t('spreed', 'Off') }}
-			</ActionButton>
+				<ActionText
+					:title="t('spreed', 'Chat notifications')" />
+				<ActionButton
+					:class="{'forced-active': isNotifyAlways}"
+					icon="icon-sound"
+					@click.prevent.exact="setNotificationLevel(1)">
+					{{ t('spreed', 'All messages') }}
+				</ActionButton>
+				<ActionButton
+					:class="{'forced-active': isNotifyMention}"
+					icon="icon-user"
+					@click.prevent.exact="setNotificationLevel(2)">
+					{{ t('spreed', '@-mentions only') }}
+				</ActionButton>
+				<ActionButton
+					:class="{'forced-active': isNotifyNever}"
+					icon="icon-sound-off"
+					@click.prevent.exact="setNotificationLevel(3)">
+					{{ t('spreed', 'Off') }}
+				</ActionButton>
+			</template>
 
 			<ActionSeparator />
 
@@ -90,7 +92,7 @@
 				icon="icon-delete-critical"
 				class="critical"
 				@click.prevent.exact="deleteConversation">
-				{{ t('spreed', 'Delete conversation') }}
+				{{ labelDeleteConversation }}
 			</ActionButton>
 		</template>
 	</AppContentListItem>
@@ -145,6 +147,9 @@ export default {
 		counterShouldBePrimary() {
 			return this.item.unreadMention || (this.item.unreadMessages && this.item.type === CONVERSATION.TYPE.ONE_TO_ONE)
 		},
+		isMyNotesConversation() {
+			return this.item.type === CONVERSATION.TYPE.NOTES
+		},
 		linkToConversation() {
 			return window.location.protocol + '//' + window.location.host + generateUrl('/call/' + this.item.token)
 		},
@@ -166,6 +171,12 @@ export default {
 		isNotifyNever() {
 			return this.item.notificationLevel === PARTICIPANT.NOTIFY.NEVER
 		},
+		labelDeleteConversation() {
+			if (this.item.type === CONVERSATION.TYPE.NOTES) {
+				return t('spreed', 'Delete my notes')
+			}
+			return t('spreed', 'Delete conversation')
+		},
 		canDeleteConversation() {
 			return this.item.canDeleteConversation
 		},
@@ -184,7 +195,8 @@ export default {
 				return ''
 			}
 
-			if (this.shortLastChatMessageAuthor === '') {
+			if (this.shortLastChatMessageAuthor === ''
+				|| this.item.type === CONVERSATION.TYPE.NOTES) {
 				return this.simpleLastChatMessage
 			}
 
