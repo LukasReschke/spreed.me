@@ -76,13 +76,11 @@
 						v-if="messageToBeReplied"
 						:is-new-message-form-quote="true"
 						v-bind="messageToBeReplied" />
-					<AdvancedInput
-						ref="advancedInput"
+					<RichContenteditable
+						ref="richContenteditable"
 						v-model="text"
-						:token="token"
-						@update:contentEditable="contentEditableToParsed"
-						@submit="handleSubmit"
-						@files-pasted="handleFiles" />
+						:auto-complete="autoComplete"
+						@update:value="parsedText = arguments[0]" />
 				</div>
 				<button
 					type="submit"
@@ -95,13 +93,14 @@
 </template>
 
 <script>
-import AdvancedInput from './AdvancedInput/AdvancedInput'
 import { getFilePickerBuilder } from '@nextcloud/dialogs'
 import { postNewMessage } from '../../services/messagesService'
+import { searchPossibleMentions } from '../../services/mentionsService'
 import Quote from '../Quote'
 import Actions from '@nextcloud/vue/dist/Components/Actions'
 import ActionButton from '@nextcloud/vue/dist/Components/ActionButton'
 import EmojiPicker from '@nextcloud/vue/dist/Components/EmojiPicker'
+import RichContenteditable from '@nextcloud/vue/dist/Components/RichContenteditable'
 import { shareFile } from '../../services/filesSharingServices'
 import { processFiles } from '../../utils/fileUpload'
 import { CONVERSATION } from '../../constants'
@@ -118,12 +117,12 @@ const picker = getFilePickerBuilder(t('spreed', 'File to share'))
 export default {
 	name: 'NewMessageForm',
 	components: {
-		AdvancedInput,
 		Quote,
 		Actions,
 		ActionButton,
 		EmojiPicker,
 		EmoticonOutline,
+		RichContenteditable,
 	},
 	data: function() {
 		return {
@@ -176,51 +175,6 @@ export default {
 	},
 
 	methods: {
-		contentEditableToParsed(contentEditable) {
-			const mentions = contentEditable.querySelectorAll('span[data-at-embedded]')
-			mentions.forEach(mention => {
-				// FIXME Adding a space after the mention should be improved to
-				// do it or not based on the next element instead of always
-				// adding it.
-				mention.replaceWith('@' + mention.firstElementChild.attributes['data-mention-id'].value + ' ')
-			})
-
-			this.parsedText = this.rawToParsed(contentEditable.innerHTML)
-		},
-		/**
-		 * Returns a parsed version of the given raw text of the content
-		 * editable div.
-		 *
-		 * The given raw text contains a plain text representation of HTML
-		 * content (like "first&nbsp;line<br>second&nbsp;line"). The returned
-		 * parsed text replaces the (known) HTML content with the format
-		 * expected by the server (like "first line\nsecond line").
-		 *
-		 * The parsed text is also trimmed.
-		 *
-		 * @param {String} text the raw text
-		 * @returns {String} the parsed text
-		 */
-		rawToParsed(text) {
-			text = text.replace(/<br>/g, '\n')
-			text = text.replace(/&nbsp;/g, ' ')
-
-			// Since we used innerHTML to get the content of the div.contenteditable
-			// it is escaped. With this little trick from https://stackoverflow.com/a/7394787
-			// We unescape the code again, so if you write `<strong>` we can display
-			// it again instead of `&lt;strong&gt;`
-			const temp = document.createElement('textarea')
-			temp.innerHTML = text
-			text = temp.value
-
-			// Although the text is fully trimmed, at the very least the last
-			// "\n" occurrence should be always removed, as browsers add a
-			// "<br>" element as soon as some rich text is written in a content
-			// editable div (for example, if a new line is added the div content
-			// will be "<br><br>").
-			return text.trim()
-		},
-
 		/**
 		 * Sends the new message
 		 */
@@ -312,7 +266,7 @@ export default {
 		addEmoji(emoji) {
 			const selection = document.getSelection()
 
-			const contentEditable = this.$refs.advancedInput.$refs.contentEditable
+			const contentEditable = this.$refs.richContenteditable.$refs.contenteditable
 
 			// There is no select, or current selection does not start in the
 			// content editable element, so just append the emoji at the end.
@@ -345,6 +299,48 @@ export default {
 			this.text = contentEditable.innerHTML
 
 			range.setStartAfter(emojiTextNode)
+		},
+
+		async autoComplete(search, callback) {
+			const response = await searchPossibleMentions(this.token, search)
+			if (!response) {
+				// It was not possible to get the candidate mentions, so just
+				// keep the previous ones.
+				return
+			}
+
+			const possibleMentions = response.data.ocs.data
+
+			possibleMentions.forEach(possibleMention => {
+				// Wrap mention ids with spaces in quotes.
+				if (possibleMention.id.indexOf(' ') !== -1
+					|| possibleMention.id.indexOf('guest/') === 0) {
+					possibleMention.id = '"' + possibleMention.id + '"'
+				}
+
+				// Set icon for candidate mentions that are not for users.
+				if (possibleMention.source === 'calls') {
+					possibleMention.icon = 'icon-group-forced-white'
+				} else if (possibleMention.source === 'guests') {
+					possibleMention.icon = 'icon-user-forced-white'
+				} else {
+					// The avatar is automatically shown for users, but an icon
+					// is nevertheless required as fallback.
+					possibleMention.icon = 'icon-user-forced-white'
+				}
+
+				// Convert status properties to an object.
+				if (possibleMention.status) {
+					const status = {
+						status: possibleMention.status,
+						icon: possibleMention.statusIcon,
+					}
+					possibleMention.status = status
+					possibleMention.subline = possibleMention.statusMessage
+				}
+			})
+
+			callback(possibleMentions)
 		},
 
 		// Check whether the current conversation is the first in the conversations
@@ -380,6 +376,12 @@ export default {
 			overflow-y: auto;
 			overflow-x: hidden;
 			max-width: $message-max-width;
+
+			.rich-contenteditable__input {
+				border: none;
+				word-break: break-word;
+				white-space: pre-wrap;
+			}
 		}
 		&__button {
 			width: 44px;

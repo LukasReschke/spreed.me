@@ -115,13 +115,16 @@
 	}
 }
 
-// The atwho panel is a direct child of the body, so it is not affected by
+// The tribute panel is a direct child of the body, so it is not affected by
 // .app-Talk rules above.
-.talk.candidate-mentions.atwho-panel {
+.tribute-container {
 	// "forced-white" needs to be included in the class name as the Avatar does
 	// not accept several classes.
 	.icon-group-forced-white {
 		background-image: url(icon-color-path('group', 'actions', 'fff', 1, true));
+	}
+	.icon-user-forced-white {
+		background-image: url(icon-color-path('user', 'actions', 'fff', 1, true));
 	}
 }
 
