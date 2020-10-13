@@ -82,6 +82,13 @@ trait TInitialState {
 			$appManager->isEnabledForUser('circles', $user)
 		);
 
+		$this->initialStateService->provideInitialState(
+			'talk', 'send_message_key',
+			$this->serverConfig->getUserValue(
+				$user->getUID(), 'spreed', 'send_message_key', Participant::SEND_MESSAGE_KEY_ENTER
+			)
+		);
+
 		$attachmentFolder = $this->talkConfig->getAttachmentFolder($user->getUID());
 
 		if ($attachmentFolder) {
@@ -125,6 +132,10 @@ trait TInitialState {
 		$this->initialStateService->provideInitialState(
 			'talk', 'attachment_folder',
 			''
+		);
+
+		$this->initialStateService->provideInitialState(
+			'talk', 'send_message_key', Participant::SEND_MESSAGE_KEY_ENTER
 		);
 
 		$this->initialStateService->provideInitialState(

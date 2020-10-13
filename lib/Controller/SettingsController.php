@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace OCA\Talk\Controller;
 
 use OCA\Files_Sharing\SharedStorage;
+use OCA\Talk\Participant;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\OCSController;
@@ -79,7 +80,10 @@ class SettingsController extends OCSController {
 	}
 
 	protected function validateUserSetting(string $setting, ?string $value): bool {
-		if ($setting === 'attachment_folder') {
+		if ($setting === 'send_message_key') {
+			return $value === Participant::SEND_MESSAGE_KEY_ENTER
+				|| $value === Participant::SEND_MESSAGE_KEY_SHIFT_ENTER;
+		} elseif ($setting === 'attachment_folder') {
 			$userFolder = $this->rootFolder->getUserFolder($this->userId);
 			try {
 				$node = $userFolder->get($value);

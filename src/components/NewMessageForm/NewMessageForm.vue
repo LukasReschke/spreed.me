@@ -80,6 +80,7 @@
 						ref="advancedInput"
 						v-model="text"
 						:token="token"
+						:submit-with-shift-enter="submitWithShiftEnter"
 						@update:contentEditable="contentEditableToParsed"
 						@submit="handleSubmit"
 						@files-pasted="handleFiles" />
@@ -105,7 +106,7 @@ import EmojiPicker from '@nextcloud/vue/dist/Components/EmojiPicker'
 import { EventBus } from '../../services/EventBus'
 import { shareFile } from '../../services/filesSharingServices'
 import { processFiles } from '../../utils/fileUpload'
-import { CONVERSATION } from '../../constants'
+import { CONVERSATION, SEND_MESSAGE_KEY } from '../../constants'
 import createTemporaryMessage from '../../utils/temporaryMessage'
 import EmoticonOutline from 'vue-material-design-icons/EmoticonOutline'
 
@@ -143,6 +144,10 @@ export default {
 			return this.$store.getters.getToken()
 		},
 
+		submitWithShiftEnter() {
+			return this.$store.getters.getSendMessageKey() === SEND_MESSAGE_KEY.SHIFT_ENTER
+		},
+
 		conversation() {
 			return this.$store.getters.conversation(this.token) || {
 				readOnly: CONVERSATION.STATE.READ_WRITE,
@@ -159,10 +164,6 @@ export default {
 
 		canShareAndUploadFiles() {
 			return !this.currentUserIsGuest && this.conversation.readOnly === CONVERSATION.STATE.READ_WRITE
-		},
-
-		attachmentFolder() {
-			return this.$store.getters.getAttachmentFolder()
 		},
 	},
 
@@ -215,7 +216,26 @@ export default {
 		 * @returns {String} the parsed text
 		 */
 		rawToParsed(text) {
+			// first div doesn't count
+			text = text.replace(/^<div>/g, '')
+
+			// newlines from enter key
+			//   extra newlines
+			text = text.replace(/<div><br><\/div>/g, '\n')
+			//   regular newlines
+			text = text.replace(/<div>/g, '\n')
+
+			// newlines from shift+enter key
 			text = text.replace(/<br>/g, '\n')
+
+			// clear formatting tags (for now)i
+			// some browsers natively allow users to insert those with ctrl+b or ctrl+i
+			text = text.replace(/<\/?i>/g, '')
+			text = text.replace(/<\/?b>/g, '')
+
+			// clean up
+			text = text.replace(/<\/div>/g, '')
+
 			text = text.replace(/&nbsp;/g, ' ')
 
 			// Since we used innerHTML to get the content of the div.contenteditable

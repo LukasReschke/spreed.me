@@ -29,6 +29,7 @@ import messagesStore from './messagesStore'
 import participantsStore from './participantsStore'
 import quoteReplyStore from './quoteReplyStore'
 import sidebarStore from './sidebarStore'
+import settingsStore from './settingsStore'
 import tokenStore from './tokenStore'
 import windowVisibilityStore from './windowVisibilityStore'
 import fileUploadStore from './fileUploadStore'
@@ -49,6 +50,7 @@ export default new Store({
 		participantsStore,
 		quoteReplyStore,
 		sidebarStore,
+		settingsStore,
 		tokenStore,
 		windowVisibilityStore,
 		fileUploadStore,

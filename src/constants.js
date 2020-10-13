@@ -85,3 +85,8 @@ export const FLOW = {
 		ROOM_MENTION: 3,
 	},
 }
+
+export const SEND_MESSAGE_KEY = {
+	ENTER: 'enter',
+	SHIFT_ENTER: 'shift_enter',
+}

@@ -47,6 +47,9 @@ class Participant {
 	public const NOTIFY_MENTION = 2;
 	public const NOTIFY_NEVER = 3;
 
+	public const SEND_MESSAGE_KEY_ENTER = 'enter';
+	public const SEND_MESSAGE_KEY_SHIFT_ENTER = 'shift_enter';
+
 	/** @var IDBConnection */
 	protected $db;
 	/** @var IConfig */

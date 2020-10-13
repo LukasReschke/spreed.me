@@ -198,6 +198,14 @@ export default {
 			type: String,
 			required: true,
 		},
+
+		/**
+		 * Whether to use the shift-enter key to submitting instead of enter
+		 */
+		submitWithShiftEnter: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	data: function() {
 		return {
@@ -303,7 +311,7 @@ export default {
 			}
 
 			// TODO: add support for CTRL+ENTER new line
-			if (!(event.shiftKey)) {
+			if (event.shiftKey === this.submitWithShiftEnter) {
 				event.preventDefault()
 				this.$emit('submit', event)
 			}

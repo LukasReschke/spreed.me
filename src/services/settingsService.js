@@ -24,7 +24,7 @@ import axios from '@nextcloud/axios'
 import { generateOcsUrl } from '@nextcloud/router'
 
 /**
- * Gets the conversation token for a given file id
+ * Sets the attachment folder setting for the user
  *
  * @param {string} path The name of the folder
  * @returns {Object} The axios response
@@ -36,6 +36,20 @@ const setAttachmentFolder = async function(path) {
 	})
 }
 
+/**
+ * Sets the flag for sending messages with shift+enter
+ *
+ * @param {String} key key
+ * @returns {Object} The axios response
+ */
+const setSendMessageKey = async function(key) {
+	return axios.post(generateOcsUrl('apps/spreed/api/v1/settings', 2) + 'user', {
+		key: 'send_message_key',
+		value: key,
+	})
+}
+
 export {
 	setAttachmentFolder,
+	setSendMessageKey,
 }

@@ -49,7 +49,22 @@
 					{{ t('spreed', 'Keyboard shortcuts') }}
 				</h2>
 
-				<p>{{ t('spreed', 'Speed up your Talk experience with these quick shortcuts.') }}</p>
+				<div v-if="!isGuest">
+					<input
+						id="app-settings-send-message-key"
+						type="checkbox"
+						class="checkbox"
+						:checked="sendMessageKeyIsShiftEnter"
+						:disabled="sendMessageKeyLoading"
+						@change="updateSendMessageKey($event)">
+					<label for="app-settings-send-message-key">
+						{{ t('spreed', 'Shift-Enter sends messages instead of Enter') }}
+					</label>
+				</div>
+
+				<h3 class="app-settings-section__hint">
+					{{ t('spreed', 'Speed up your Talk experience with these quick shortcuts.') }}
+				</h3>
 
 				<dl>
 					<div>
@@ -101,8 +116,9 @@
 <script>
 import Modal from '@nextcloud/vue/dist/Components/Modal'
 import { getFilePickerBuilder, showError } from '@nextcloud/dialogs'
-import { setAttachmentFolder } from '../../services/settingsService'
+import { setAttachmentFolder, setSendMessageKey } from '../../services/settingsService'
 import { EventBus } from '../../services/EventBus'
+import { SEND_MESSAGE_KEY } from '../../constants'
 import MediaDevicesPreview from '../MediaDevicesPreview'
 
 export default {
@@ -117,12 +133,17 @@ export default {
 		return {
 			showSettings: false,
 			attachmentFolderLoading: true,
+			sendMessageKeyLoading: true,
 		}
 	},
 
 	computed: {
 		attachmentFolder() {
 			return this.$store.getters.getAttachmentFolder()
+		},
+
+		sendMessageKeyIsShiftEnter() {
+			return this.$store.getters.getSendMessageKey() === SEND_MESSAGE_KEY.SHIFT_ENTER
 		},
 
 		locationHint() {
@@ -137,6 +158,7 @@ export default {
 	mounted() {
 		EventBus.$on('show-settings', this.handleShowSettings)
 		this.attachmentFolderLoading = false
+		this.sendMessageKeyLoading = false
 	},
 
 	methods: {
@@ -168,6 +190,20 @@ export default {
 					}
 					this.attachmentFolderLoading = false
 				})
+		},
+
+		async updateSendMessageKey(event) {
+			const newValue = event.target.checked ? SEND_MESSAGE_KEY.SHIFT_ENTER : SEND_MESSAGE_KEY.ENTER
+			this.sendMessageKeyLoading = true
+
+			try {
+				this.$store.commit('updateSendMessageKey', newValue)
+				await setSendMessageKey(newValue)
+			} catch (exception) {
+				showError(t('spreed', 'Error while setting the send message key'))
+			}
+
+			this.sendMessageKeyLoading = false
 		},
 
 		handleShowSettings(showSettings) {
