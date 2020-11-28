@@ -62,6 +62,7 @@ import duplicateSessionHandler from './mixins/duplicateSessionHandler'
 import isInCall from './mixins/isInCall'
 import participant from './mixins/participant'
 import talkHashCheck from './mixins/talkHashCheck'
+import { showError } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 import UploadEditor from './components/UploadEditor'
 import SettingsDialog from './components/SettingsDialog/SettingsDialog'
@@ -93,6 +94,7 @@ export default {
 			defaultPageTitle: false,
 			loading: false,
 			isRefreshingCurrentConversation: false,
+			errorUpdatingConversationToast: null,
 		}
 	},
 
@@ -270,7 +272,11 @@ export default {
 				this.setPageTitle(nextConversationName)
 				// Update current token in the token store
 				this.$store.dispatch('updateToken', to.params.token)
+			} else if (to.name === 'notfound') {
+				this.setPageTitle('')
+				this.$store.dispatch('updateToken', '')
 			}
+
 			/**
 			 * Fires a global event that tells the whole app that the route has changed. The event
 			 * carries the from and to objects as payload
@@ -421,6 +427,11 @@ export default {
 				 */
 				const response = await fetchConversation(token)
 
+				if (this.errorUpdatingConversationToast) {
+					this.errorUpdatingConversationToast.hideToast()
+					this.errorUpdatingConversationToast = null
+				}
+
 				// this.$store.dispatch('purgeConversationsStore')
 				this.$store.dispatch('addConversation', response.data.ocs.data)
 				this.$store.dispatch('markConversationRead', token)
@@ -433,9 +444,21 @@ export default {
 					singleConversation: true,
 				})
 			} catch (exception) {
-				console.info('Conversation received, but the current conversation is not in the list. Redirecting to /apps/spreed')
-				this.$router.push('/apps/spreed/not-found')
-				this.$store.dispatch('hideSidebar')
+				if (exception.response && exception.response.status === 404) {
+					console.info('Conversation received, but the current conversation is not in the list. Redirecting to /apps/spreed')
+					this.$router.push('/apps/spreed/not-found')
+					this.$store.dispatch('hideSidebar')
+
+					return
+				}
+
+				// TODO Maybe progressively increase debouncing time to avoid
+				// hammering the server if it is already loaded?
+				this.debounceRefreshCurrentConversation()
+
+				if (!this.errorUpdatingConversationToast) {
+					this.errorUpdatingConversationToast = showError(t('spreed', 'An error occurred while updating the conversation'))
+				}
 			} finally {
 				this.isRefreshingCurrentConversation = false
 			}
