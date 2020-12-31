@@ -136,6 +136,17 @@ class Listener {
 				$listener->sendSystemMessage($room, 'description_removed');
 			}
 		});
+		$dispatcher->addListener(Room::EVENT_AFTER_AVATAR_SET, static function (ModifyRoomEvent $event) {
+			$room = $event->getRoom();
+			/** @var self $listener */
+			$listener = \OC::$server->get(self::class);
+
+			if ($event->getNewValue() === 'custom') {
+				$listener->sendSystemMessage($room, 'avatar_set');
+			} elseif ($event->getNewValue() !== 'custom' && $event->getOldValue() === 'custom') {
+				$listener->sendSystemMessage($room, 'avatar_removed');
+			}
+		});
 		$dispatcher->addListener(Room::EVENT_AFTER_PASSWORD_SET, static function (ModifyRoomEvent $event) {
 			$room = $event->getRoom();
 			/** @var self $listener */

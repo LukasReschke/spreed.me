@@ -137,6 +137,7 @@ class Listener {
 		};
 		$dispatcher->addListener(Room::EVENT_AFTER_NAME_SET, $listener);
 		$dispatcher->addListener(Room::EVENT_AFTER_DESCRIPTION_SET, $listener);
+		$dispatcher->addListener(Room::EVENT_AFTER_AVATAR_SET, $listener);
 		$dispatcher->addListener(Room::EVENT_AFTER_PASSWORD_SET, $listener);
 		$dispatcher->addListener(Room::EVENT_AFTER_TYPE_SET, $listener);
 		$dispatcher->addListener(Room::EVENT_AFTER_READONLY_SET, $listener);

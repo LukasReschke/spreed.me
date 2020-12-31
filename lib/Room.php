@@ -27,6 +27,7 @@ declare(strict_types=1);
 
 namespace OCA\Talk;
 
+use OCA\Talk\Events\ModifyAvatarEvent;
 use OCA\Talk\Events\ModifyLobbyEvent;
 use OCA\Talk\Events\ModifyRoomEvent;
 use OCA\Talk\Events\RoomEvent;
@@ -92,6 +93,8 @@ class Room {
 	public const EVENT_AFTER_NAME_SET = self::class . '::postSetName';
 	public const EVENT_BEFORE_DESCRIPTION_SET = self::class . '::preSetDescription';
 	public const EVENT_AFTER_DESCRIPTION_SET = self::class . '::postSetDescription';
+	public const EVENT_BEFORE_AVATAR_SET = self::class . '::preSetAvatar';
+	public const EVENT_AFTER_AVATAR_SET = self::class . '::postSetAvatar';
 	public const EVENT_BEFORE_PASSWORD_SET = self::class . '::preSetPassword';
 	public const EVENT_AFTER_PASSWORD_SET = self::class . '::postSetPassword';
 	public const EVENT_BEFORE_TYPE_SET = self::class . '::preSetType';
@@ -165,6 +168,10 @@ class Room {
 	/** @var string */
 	private $description;
 	/** @var string */
+	private $avatarId;
+	/** @var int */
+	private $avatarVersion;
+	/** @var string */
 	private $password;
 	/** @var int */
 	private $activeGuests;
@@ -202,6 +209,8 @@ class Room {
 								string $token,
 								string $name,
 								string $description,
+								string $avatarId,
+								int $avatarVersion,
 								string $password,
 								int $activeGuests,
 								\DateTime $activeSince = null,
@@ -227,6 +236,8 @@ class Room {
 		$this->token = $token;
 		$this->name = $name;
 		$this->description = $description;
+		$this->avatarId = $avatarId;
+		$this->avatarVersion = $avatarVersion;
 		$this->password = $password;
 		$this->activeGuests = $activeGuests;
 		$this->activeSince = $activeSince;
@@ -314,6 +325,14 @@ class Room {
 		return $this->description;
 	}
 
+	public function getAvatarId(): string {
+		return $this->avatarId;
+	}
+
+	public function getAvatarVersion(): int {
+		return $this->avatarVersion;
+	}
+
 	public function getActiveGuests(): int {
 		return $this->activeGuests;
 	}
@@ -380,6 +399,8 @@ class Room {
 		if ($roomModified) {
 			$properties = array_merge($properties, [
 				'description' => $this->getDescription(),
+				'avatarId' => $this->getAvatarId(),
+				'avatarVersion' => $this->getAvatarVersion(),
 			]);
 		}
 
@@ -614,6 +635,41 @@ class Room {
 		$this->description = $description;
 
 		$this->dispatcher->dispatch(self::EVENT_AFTER_DESCRIPTION_SET, $event);
+
+		return true;
+	}
+
+	/**
+	 * Sets the avatar id and version.
+	 *
+	 * @param string $avatarId
+	 * @param int $avatarVersion
+	 * @return bool True when the change was valid, false otherwise
+	 */
+	public function setAvatar(string $avatarId, int $avatarVersion): bool {
+		$oldAvatarId = $this->getAvatarId();
+		$oldAvatarVersion = $this->getAvatarVersion();
+		if ($avatarId === $oldAvatarId && $avatarVersion === $oldAvatarVersion) {
+			return false;
+		}
+
+		if ($avatarVersion <= $oldAvatarVersion) {
+			return false;
+		}
+
+		$event = new ModifyAvatarEvent($this, 'avatarId', $avatarId, $oldAvatarId, $avatarVersion);
+		$this->dispatcher->dispatch(self::EVENT_BEFORE_AVATAR_SET, $event);
+
+		$query = $this->db->getQueryBuilder();
+		$query->update('talk_rooms')
+			->set('avatar_id', $query->createNamedParameter($avatarId))
+			->set('avatar_version', $query->createNamedParameter($avatarVersion, IQueryBuilder::PARAM_INT))
+			->where($query->expr()->eq('id', $query->createNamedParameter($this->getId(), IQueryBuilder::PARAM_INT)));
+		$query->execute();
+		$this->avatarId = $avatarId;
+		$this->avatarVersion = $avatarVersion;
+
+		$this->dispatcher->dispatch(self::EVENT_AFTER_AVATAR_SET, $event);
 
 		return true;
 	}

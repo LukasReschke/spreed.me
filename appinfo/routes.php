@@ -592,5 +592,33 @@ return [
 				'apiVersion' => 'v1',
 			],
 		],
+
+		/**
+		 * Room avatar
+		 */
+		[
+			'name' => 'RoomAvatar#getAvatar',
+			'url' => '/api/{apiVersion}/avatar/{roomToken}/{size}',
+			'verb' => 'GET',
+			'requirements' => [
+				'apiVersion' => 'v3',
+			],
+		],
+		[
+			'name' => 'RoomAvatar#setAvatar',
+			'url' => '/api/{apiVersion}/avatar/{roomToken}',
+			'verb' => 'POST',
+			'requirements' => [
+				'apiVersion' => 'v3',
+			],
+		],
+		[
+			'name' => 'RoomAvatar#deleteAvatar',
+			'url' => '/api/{apiVersion}/avatar/{roomToken}',
+			'verb' => 'DELETE',
+			'requirements' => [
+				'apiVersion' => 'v3',
+			],
+		],
 	],
 ];

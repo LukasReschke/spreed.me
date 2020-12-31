@@ -39,6 +39,8 @@ class SelectHelper {
 			->addSelect($alias . 'token')
 			->addSelect($alias . 'name')
 			->addSelect($alias . 'description')
+			->addSelect($alias . 'avatar_id')
+			->addSelect($alias . 'avatar_version')
 			->addSelect($alias . 'password')
 			->addSelect($alias . 'active_guests')
 			->addSelect($alias . 'active_since')

@@ -105,6 +105,7 @@ class CapabilitiesTest extends TestCase {
 					'chat-read-status',
 					'phonebook-search',
 					'raise-hand',
+					'room-avatar',
 				],
 				'config' => [
 					'attachments' => [
@@ -213,6 +214,7 @@ class CapabilitiesTest extends TestCase {
 					'chat-read-status',
 					'phonebook-search',
 					'raise-hand',
+					'room-avatar',
 					'chat-reference-id',
 				],
 				'config' => [

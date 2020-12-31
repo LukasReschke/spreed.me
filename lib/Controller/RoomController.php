@@ -584,6 +584,8 @@ class RoomController extends AEnvironmentAwareController {
 				'canEnableSIP' => false,
 				'attendeePin' => '',
 				'description' => '',
+				'avatarId' => '',
+				'avatarVersion' => 0,
 				'lastCommonReadMessage' => 0,
 				'listable' => Room::LISTABLE_NONE,
 			]);
@@ -658,6 +660,8 @@ class RoomController extends AEnvironmentAwareController {
 				'actorId' => $attendee->getActorId(),
 				'attendeeId' => $attendee->getId(),
 				'description' => $room->getDescription(),
+				'avatarId' => $room->getAvatarId(),
+				'avatarVersion' => $room->getAvatarVersion(),
 				'listable' => $room->getListable(),
 			]);
 

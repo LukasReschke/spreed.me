@@ -25,6 +25,7 @@ namespace OCA\Talk\AppInfo;
 
 use OCA\Files_Sharing\Event\BeforeTemplateRenderedEvent;
 use OCA\Talk\Activity\Listener as ActivityListener;
+use OCA\Talk\Avatar\Listener as AvatarListener;
 use OCA\Talk\Capabilities;
 use OCA\Talk\Chat\Changelog\Listener as ChangelogListener;
 use OCA\Talk\Chat\ChatManager;
@@ -131,6 +132,7 @@ class Application extends App implements IBootstrap {
 		ChangelogListener::register($dispatcher);
 		ShareListener::register($dispatcher);
 		Operation::register($dispatcher);
+		AvatarListener::register($dispatcher);
 
 		$this->registerRoomActivityHooks($dispatcher);
 		$this->registerChatHooks($dispatcher);
