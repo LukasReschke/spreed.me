@@ -70,6 +70,8 @@ class RoomTest extends TestCase {
 			'foobar',
 			'Test',
 			'description',
+			'avatar-id',
+			1,
 			'passy',
 			0,
 			null,

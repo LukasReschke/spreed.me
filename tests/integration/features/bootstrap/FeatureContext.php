@@ -51,11 +51,17 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 	/** @var string */
 	protected $currentUser;
 
+	/** @var string */
+	protected $loggedInUser;
+
 	/** @var ResponseInterface */
 	private $response;
 
 	/** @var CookieJar[] */
 	private $cookieJars;
+
+	/** @var string */
+	private $requestToken;
 
 	/** @var string */
 	protected $baseUrl;
@@ -84,6 +90,7 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 	/** @var string */
 	private $guestsOldWhitelist;
 
+	use AvatarTrait;
 	use CommandLineTrait;
 
 	public static function getTokenForIdentifier(string $identifier) {
@@ -251,6 +258,12 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 			}
 			if (isset($expectedRoom['description'])) {
 				$data['description'] = $room['description'];
+			}
+			if (isset($expectedRoom['avatarId'])) {
+				$data['avatarId'] = $room['avatarId'];
+			}
+			if (isset($expectedRoom['avatarVersion'])) {
+				$data['avatarVersion'] = $room['avatarVersion'];
 			}
 			if (isset($expectedRoom['type'])) {
 				$data['type'] = (string) $room['type'];
@@ -1759,7 +1772,7 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 			]
 		);
 
-		$requestToken = $this->extractRequestTokenFromResponse($this->response);
+		$this->extractRequestTokenFromResponse($this->response);
 
 		// Login and extract new token
 		$password = ($user === 'admin') ? 'admin' : self::TEST_PASSWORD;
@@ -1770,21 +1783,58 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 				'form_params' => [
 					'user' => $user,
 					'password' => $password,
-					'requesttoken' => $requestToken,
+					'requesttoken' => $this->requestToken,
 				],
 				'cookies' => $cookieJar,
 			]
 		);
+		$this->extractRequestTokenFromResponse($this->response);
 
 		$this->assertStatusCode($this->response, 200);
+
+		$this->loggedInUser = $user;
 	}
 
 	/**
 	 * @param ResponseInterface $response
-	 * @return string
 	 */
-	private function extractRequestTokenFromResponse(ResponseInterface $response): string {
-		return substr(preg_replace('/(.*)data-requesttoken="(.*)">(.*)/sm', '\2', $response->getBody()->getContents()), 0, 89);
+	private function extractRequestTokenFromResponse(ResponseInterface $response): void {
+		$this->requestToken = substr(preg_replace('/(.*)data-requesttoken="(.*)">(.*)/sm', '\2', $response->getBody()->getContents()), 0, 89);
+	}
+
+	/**
+	 * @When /^sending "([^"]*)" to "([^"]*)" with request token$/
+	 * @param string $verb
+	 * @param string $url
+	 * @param TableNode|array|null $body
+	 */
+	public function sendingToWithRequestToken(string $verb, string $url, $body = null) {
+		$fullUrl = $this->baseUrl . $url;
+
+		$options = [
+			'cookies' => $this->getUserCookieJar($this->loggedInUser),
+			'headers' => [
+				'requesttoken' => $this->requestToken
+			],
+		];
+
+		if ($body instanceof TableNode) {
+			$fd = $body->getRowsHash();
+			$options['form_params'] = $fd;
+		} elseif ($body) {
+			$options = array_merge($options, $body);
+		}
+
+		$client = new Client();
+		try {
+			$this->response = $client->request(
+				$verb,
+				$fullUrl,
+				$options
+			);
+		} catch (ClientException $e) {
+			$this->response = $e->getResponse();
+		}
 	}
 
 	/**
@@ -1806,6 +1856,8 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 		if ($body instanceof TableNode) {
 			$fd = $body->getRowsHash();
 			$options['form_params'] = $fd;
+		} elseif (is_array($body) && array_key_exists('multipart', $body)) {
+			$options = array_merge($options, $body);
 		} elseif (is_array($body)) {
 			$options['form_params'] = $body;
 		}
@@ -1836,5 +1888,28 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 	 */
 	protected function assertStatusCode(ResponseInterface $response, int $statusCode, string $message = '') {
 		Assert::assertEquals($statusCode, $response->getStatusCode(), $message);
+	}
+
+	/**
+	 * @Then /^the following headers should be set$/
+	 * @param TableNode $table
+	 * @throws \Exception
+	 */
+	public function theFollowingHeadersShouldBeSet(TableNode $table) {
+		foreach ($table->getTable() as $header) {
+			$headerName = $header[0];
+			$expectedHeaderValue = $header[1];
+			$returnedHeader = $this->response->getHeader($headerName)[0];
+			if ($returnedHeader !== $expectedHeaderValue) {
+				throw new \Exception(
+					sprintf(
+						"Expected value '%s' for header '%s', got '%s'",
+						$expectedHeaderValue,
+						$headerName,
+						$returnedHeader
+					)
+				);
+			}
+		}
 	}
 }

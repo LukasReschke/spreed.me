@@ -47,6 +47,48 @@ Feature: System messages
       | room | users     | participant1 | participant1-displayname | description_set |
       | room | users     | participant1 | participant1-displayname | conversation_created |
 
+  Scenario: Set an avatar
+    Given user "participant1" creates room "room"
+      | roomType | 2 |
+      | roomName | room |
+    When user "participant1" sets avatar for room "room" from file "data/green-square-256.png"
+    Then user "participant1" sees the following system messages in room "room" with 200
+      | room | actorType | actorId      | actorDisplayName         | systemMessage |
+      | room | users     | participant1 | participant1-displayname | avatar_set |
+      | room | users     | participant1 | participant1-displayname | conversation_created |
+
+  Scenario: Set user avatar of a one-to-one conversation participant
+    Given user "participant1" creates room "room"
+      | roomType | 1 |
+      | invite   | participant2 |
+    When user "participant1" logs in
+    And logged in user posts temporary avatar from file "data/green-square-256.png"
+    And logged in user crops temporary avatar
+      | x | 0 |
+      | y | 0 |
+      | w | 256 |
+      | h | 256 |
+    # Although the room avatar changes for the other participant no system
+    # message should be added
+    Then user "participant1" sees the following system messages in room "room" with 200
+      | room | actorType | actorId      | actorDisplayName         | systemMessage |
+      | room | users     | participant1 | participant1-displayname | conversation_created |
+    And user "participant2" sees the following system messages in room "room" with 200
+      | room | actorType | actorId      | actorDisplayName         | systemMessage |
+      | room | users     | participant1 | participant1-displayname | conversation_created |
+
+  Scenario: Removes an avatar
+    Given user "participant1" creates room "room"
+      | roomType | 2 |
+      | roomName | room |
+    And user "participant1" sets avatar for room "room" from file "data/green-square-256.png"
+    When user "participant1" deletes avatar for room "room"
+    Then user "participant1" sees the following system messages in room "room" with 200
+      | room | actorType | actorId      | actorDisplayName         | systemMessage |
+      | room | users     | participant1 | participant1-displayname | avatar_removed |
+      | room | users     | participant1 | participant1-displayname | avatar_set |
+      | room | users     | participant1 | participant1-displayname | conversation_created |
+
   Scenario: Toggle guests
     Given user "participant1" creates room "room"
       | roomType | 2 |

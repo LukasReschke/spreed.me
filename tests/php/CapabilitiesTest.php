@@ -84,6 +84,7 @@ class CapabilitiesTest extends TestCase {
 			'phonebook-search',
 			'raise-hand',
 			'room-description',
+			'room-avatar',
 		];
 	}
 

@@ -9,6 +9,11 @@
       <code>getSettingsManager</code>
     </UndefinedInterfaceMethod>
   </file>
+  <file src="lib/Avatar/Listener.php">
+    <InvalidArgument occurrences="1">
+      <code>$listener</code>
+    </InvalidArgument>
+  </file>
   <file src="lib/BackgroundJob/CheckReferenceIdColumn.php">
     <UndefinedClass occurrences="1">
       <code>SchemaWrapper</code>
