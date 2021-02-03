@@ -160,7 +160,11 @@ export default {
 			const urls = []
 			let i
 			for (i = 0; i < protocols.length; i++) {
-				urls.push('turn:' + this.server + '?transport=' + protocols[i])
+				let server = this.server
+				if (!(server.toLowerCase().startsWith('turn:') || server.toLowerCase().startsWith('turns:'))) {
+					server = 'turn:' + server
+				}
+				urls.push(server + '?transport=' + protocols[i])
 			}
 
 			const expires = Math.round((new Date()).getTime() / 1000) + (5 * 60)

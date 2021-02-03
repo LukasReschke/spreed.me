@@ -137,21 +137,26 @@ class SignalingController extends OCSController {
 		}
 
 		$stun = [];
-		$stunServer = $this->talkConfig->getStunServer();
-		if ($stunServer) {
+		foreach ($this->talkConfig->getStunServers() as $stunServer) {
+			if (strtolower(substr($stunServer, 0, 5)) !== 'stun:' && strtolower(substr($stunServer, 0, 6)) !== 'stuns:') {
+				$stunServer = 'stun:' . $stunServer;
+			}
 			$stun[] = [
-				'url' => 'stun:' . $stunServer,
+				'url' => $stunServer,
 			];
 		}
 
 		$turn = [];
-		$turnSettings = $this->talkConfig->getTurnSettings();
-		if (!empty($turnSettings['server'])) {
+		foreach ($this->talkConfig->getTurnSettings() as $turnSettings) {
 			$protocols = explode(',', $turnSettings['protocols']);
 			foreach ($protocols as $proto) {
+				$server = $turnSettings['server'];
+				if (strtolower(substr($server, 0, 5)) !== 'turn:' && strtolower(substr($server, 0, 6)) !== 'turns:') {
+					$server = 'turn:' . $server;
+				}
 				$turn[] = [
-					'url' => ['turn:' . $turnSettings['server'] . '?transport=' . $proto],
-					'urls' => ['turn:' . $turnSettings['server'] . '?transport=' . $proto],
+					'url' => [$server . '?transport=' . $proto],
+					'urls' => [$server . '?transport=' . $proto],
 					'username' => $turnSettings['username'],
 					'credential' => $turnSettings['password'],
 				];

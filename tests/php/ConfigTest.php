@@ -29,7 +29,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Test\TestCase;
 
 class ConfigTest extends TestCase {
-	public function testGetStunServer() {
+	public function testGetStunServers() {
 		$servers = [
 			'stun1.example.com:443',
 			'stun2.example.com:129',
@@ -55,10 +55,10 @@ class ConfigTest extends TestCase {
 			->willReturn(true);
 
 		$helper = new Config($config, $secureRandom, $groupManager, $timeFactory);
-		$this->assertTrue(in_array($helper->getStunServer(), $servers, true));
+		$this->assertSame($servers, $helper->getStunServers());
 	}
 
-	public function testGetDefaultStunServer() {
+	public function testGetDefaultStunServers() {
 		/** @var MockObject|ITimeFactory $timeFactory */
 		$timeFactory = $this->createMock(ITimeFactory::class);
 		/** @var MockObject|ISecureRandom $secureRandom */
@@ -79,10 +79,10 @@ class ConfigTest extends TestCase {
 			->willReturn(true);
 
 		$helper = new Config($config, $secureRandom, $groupManager, $timeFactory);
-		$this->assertSame('stun.nextcloud.com:443', $helper->getStunServer());
+		$this->assertSame(['stun.nextcloud.com:443'], $helper->getStunServers());
 	}
 
-	public function testGetDefaultStunServerNoInternet() {
+	public function testGetDefaultStunServersNoInternet() {
 		/** @var MockObject|ITimeFactory $timeFactory */
 		$timeFactory = $this->createMock(ITimeFactory::class);
 		/** @var MockObject|ISecureRandom $secureRandom */
@@ -103,7 +103,7 @@ class ConfigTest extends TestCase {
 			->willReturn(false);
 
 		$helper = new Config($config, $secureRandom, $groupManager, $timeFactory);
-		$this->assertSame('', $helper->getStunServer());
+		$this->assertSame([], $helper->getStunServers());
 	}
 
 	public function testGenerateTurnSettings() {
@@ -147,21 +147,22 @@ class ConfigTest extends TestCase {
 		$helper = new Config($config, $secureRandom, $groupManager, $timeFactory);
 
 		//
-		$server = $helper->getTurnSettings();
-		if ($server['server'] === 'turn.example.org') {
-			$this->assertSame([
-				'server' => 'turn.example.org',
-				'username' => '1479829425:abcdefghijklmnop',
-				'password' => '4VJLVbihLzuxgMfDrm5C3zy8kLQ=',
-				'protocols' => 'udp,tcp',
-			], $server);
-		} else {
-			$this->assertSame([
-				'server' => 'turn2.example.com',
-				'username' => '1479829425:abcdefghijklmnop',
-				'password' => 'Ol9DEqnvyN4g+IAM+vFnqhfWUTE=',
-				'protocols' => 'tcp',
-			], $server);
+		foreach ($helper->getTurnSettings() as $server) {
+			if ($server['server'] === 'turn.example.org') {
+				$this->assertSame([
+					'server' => 'turn.example.org',
+					'username' => '1479829425:abcdefghijklmnop',
+					'password' => '4VJLVbihLzuxgMfDrm5C3zy8kLQ=',
+					'protocols' => 'udp,tcp',
+				], $server);
+			} else {
+				$this->assertSame([
+					'server' => 'turn2.example.com',
+					'username' => '1479829425:abcdefghijklmnop',
+					'password' => 'Ol9DEqnvyN4g+IAM+vFnqhfWUTE=',
+					'protocols' => 'tcp',
+				], $server);
+			}
 		}
 	}
 
