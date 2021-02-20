@@ -71,6 +71,7 @@ import '@nextcloud/dialogs/styles/toast.scss'
 
 export default {
 	name: 'App',
+
 	components: {
 		AppContent,
 		Content,

@@ -26,6 +26,10 @@
 		:open.sync="showSettings"
 		:show-navigation="false">
 		<AppSettingsSection
+			:title="t('spreed', 'Details')">
+			<GeneralConversationSettings :token="token" />
+		</AppSettingsSection>
+		<AppSettingsSection
 			:title="t('spreed', 'Guests access')"
 			class="app-settings-section">
 			<LinkShareSettings ref="linkShareSettings" />
@@ -65,6 +69,7 @@ import LobbySettings from './LobbySettings'
 import SipSettings from './SipSettings'
 import MatterbridgeSettings from './Matterbridge/MatterbridgeSettings'
 import { loadState } from '@nextcloud/initial-state'
+import GeneralConversationSettings from './GeneralConversationSettings'
 
 export default {
 	name: 'ConversationSettingsDialog',
@@ -78,6 +83,7 @@ export default {
 		LockingSettings,
 		SipSettings,
 		MatterbridgeSettings,
+		GeneralConversationSettings,
 	},
 
 	data() {
