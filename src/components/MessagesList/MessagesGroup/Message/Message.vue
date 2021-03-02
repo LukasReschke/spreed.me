@@ -64,7 +64,7 @@ the main body of the message as well as a quote.
 					v-tooltip.auto="messageDate"
 					class="date"
 					:style="{'visibility': hasDate ? 'visible' : 'hidden'}"
-					:class="{'date--self': showSentIcon}">{{ messageTime }}</span>
+					:class="{'date--self': showSentIcon}">{{ messageTime }} - {{ isPinned }}</span>
 				<!-- Message delivery status indicators -->
 				<div v-if="sendingFailure"
 					v-tooltip.auto="sendingErrorIconTooltip"
@@ -116,6 +116,13 @@ the main body of the message as well as a quote.
 					class="message__main__right__actions"
 					container="#content-vue"
 					:class="{ 'tall' : isTallEnough }">
+					<ActionButton
+						v-if="showModerationOptions"
+						icon="icon-star"
+						:close-after-click="true"
+						@click.stop="togglePin">
+						{{ t('spreed', 'Pin') }}
+					</ActionButton>
 					<ActionButton
 						v-if="isReplyable"
 						icon="icon-reply"
@@ -316,6 +323,10 @@ export default {
 		sendingFailure: {
 			type: String,
 			default: '',
+		},
+		isPinned: {
+			type: Boolean,
+			required: true,
 		},
 	},
 
@@ -523,6 +534,26 @@ export default {
 				apiVersion: 'v3',
 			}
 		},
+		showModerationOptions() {
+			return this.isOneToOneConversation || this.canModerate
+		},
+
+		canModerate() {
+			return this.canFullModerate || this.participantType === PARTICIPANT.TYPE.GUEST_MODERATOR
+		},
+
+		canFullModerate() {
+			return this.participantType === PARTICIPANT.TYPE.OWNER || this.participantType === PARTICIPANT.TYPE.MODERATOR
+		},
+
+		participantType() {
+			return this.conversation.participantType
+		},
+
+		isOneToOneConversation() {
+			return this.conversation.type === CONVERSATION.TYPE.ONE_TO_ONE
+		},
+
 	},
 
 	watch: {
@@ -627,6 +658,13 @@ export default {
 			const conversation = response.data.ocs.data
 			this.$store.dispatch('addConversation', conversation)
 			this.$router.push({ name: 'conversation', params: { token: conversation.token } }).catch(err => console.debug(`Error while pushing the new conversation's route: ${err}`))
+		},
+
+		togglePin() {
+			this.$store.dispatch('togglePinned', {
+				id: this.id,
+				token: this.token,
+			})
 		},
 	},
 }

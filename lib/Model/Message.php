@@ -66,6 +66,9 @@ class Message {
 	/** @var string */
 	protected $actorDisplayName = '';
 
+	/** @var bool */
+	protected $isPinned = false;
+
 	public function __construct(Room $room,
 								Participant $participant,
 								IComment $comment,
@@ -152,6 +155,14 @@ class Message {
 		return $this->actorDisplayName;
 	}
 
+	public function isPinned(): bool {
+		return $this->isPinned;
+	}
+
+	public function togglePinned(): void {
+		$this->isPinned = !$this->isPinned;
+	}
+
 	/**
 	 * Specifies whether a message can be replied to
 	 */
@@ -176,6 +187,7 @@ class Message {
 			'messageType' => $this->getMessageType(),
 			'isReplyable' => $this->isReplyable(),
 			'referenceId' => (string) $this->getComment()->getReferenceId(),
+			'isPinned' => $this->isPinned(),
 		];
 
 		if ($this->getMessageType() === 'comment_deleted') {

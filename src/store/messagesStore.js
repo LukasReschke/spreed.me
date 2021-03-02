@@ -199,6 +199,15 @@ const mutations = {
 			Vue.delete(state.messages, token)
 		}
 	},
+
+	/**
+	 * @param {object} state current store state;
+	 * @param {string} token Token of the conversation
+	 * @param {string} id Id of the last known chat message
+	 */
+	togglePinned(state, { token, id }) {
+		Vue.set(state.messages[token][id].isPinned = !state.messages[token][id].isPinned)
+	},
 }
 
 const actions = {
@@ -320,6 +329,16 @@ const actions = {
 	 */
 	deleteMessages(context, token) {
 		context.commit('deleteMessages', token)
+
+	},
+
+	/**
+	 * @param {object} context default store context;
+	 * @param {string} token Token of the conversation
+	 * @param {string} id Id of the last known chat message
+	 */
+	togglePinned(context, { token, id }) {
+		context.commit('togglePinned', { token, id })
 	},
 }
 
