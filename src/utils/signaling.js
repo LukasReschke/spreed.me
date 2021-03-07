@@ -957,7 +957,7 @@ Signaling.Standalone.prototype._joinRoomSuccess = function(token, nextcloudSessi
 			'sessionid': nextcloudSessionId,
 		},
 	}, function(data) {
-		this.joinResponseReceived(data, token)
+		this.joinResponseReceived(data, token, nextcloudSessionId)
 	}.bind(this))
 }
 
@@ -988,8 +988,16 @@ Signaling.Standalone.prototype.joinCall = function(token, flags) {
 	return Signaling.Base.prototype.joinCall.apply(this, arguments)
 }
 
-Signaling.Standalone.prototype.joinResponseReceived = function(data, token) {
+Signaling.Standalone.prototype.joinResponseReceived = function(data, token, nextcloudSessionId) {
 	console.debug('Joined', data, token)
+
+	if (data.type === 'error') {
+		// Keep trying until the room is joined in the signaling server too.
+		this._joinRoomSuccess(token, nextcloudSessionId)
+
+		return
+	}
+
 	this.signalingRoomJoined = token
 	if (this.pendingJoinCall && token === this.pendingJoinCall.token) {
 		const pendingJoinCallResolve = this.pendingJoinCall.resolve
@@ -1002,16 +1010,6 @@ Signaling.Standalone.prototype.joinResponseReceived = function(data, token) {
 		})
 
 		this.pendingJoinCall = null
-	}
-	if (this.roomCollection) {
-		// The list of rooms is not fetched from the server. Update ping
-		// of joined room so it gets sorted to the top.
-		this.roomCollection.forEach(function(room) {
-			if (room.get('token') === token) {
-				room.set('lastPing', (new Date()).getTime() / 1000)
-			}
-		})
-		this.roomCollection.sort()
 	}
 }
 
