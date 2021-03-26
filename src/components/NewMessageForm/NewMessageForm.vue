@@ -126,7 +126,7 @@ import EmojiPicker from '@nextcloud/vue/dist/Components/EmojiPicker'
 import { EventBus } from '../../services/EventBus'
 import { shareFile } from '../../services/filesSharingServices'
 import { processFiles } from '../../utils/fileUpload'
-import { CONVERSATION } from '../../constants'
+import { CONVERSATION, PARTICIPANT } from '../../constants'
 import createTemporaryMessage from '../../utils/temporaryMessage'
 import EmoticonOutline from 'vue-material-design-icons/EmoticonOutline'
 import Send from 'vue-material-design-icons/Send'
@@ -181,7 +181,20 @@ export default {
 		},
 
 		isReadOnly() {
-			return this.conversation.readOnly === CONVERSATION.STATE.READ_ONLY
+			return (this.conversation.readOnly === CONVERSATION.STATE.READ_ONLY)
+				|| (this.conversation.readOnly === CONVERSATION.STATE.WRITE_ONLY_MOD && !this.selfIsModerator)
+		},
+
+		currentParticipant() {
+			return this.$store.getters.conversation(this.token) || {
+				sessionId: '0',
+				participantType: this.$store.getters.getUserId() !== null ? PARTICIPANT.TYPE.USER : PARTICIPANT.TYPE.GUEST,
+			}
+		},
+
+		selfIsModerator() {
+			return this.currentParticipant.participantType === PARTICIPANT.TYPE.OWNER
+				|| this.currentParticipant.participantType === PARTICIPANT.TYPE.MODERATOR
 		},
 
 		disabled() {

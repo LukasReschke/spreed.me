@@ -137,11 +137,11 @@ trait TRoomCommand {
 
 	/**
 	 * @param Room $room
-	 * @param bool $readOnly
+	 * @param int $readOnly
 	 *
 	 * @throws InvalidArgumentException
 	 */
-	protected function setRoomReadOnly(Room $room, bool $readOnly): void {
+	protected function setRoomReadOnly(Room $room, int $readOnly): void {
 		if ($readOnly === ($room->getReadOnly() === Room::READ_ONLY)) {
 			return;
 		}

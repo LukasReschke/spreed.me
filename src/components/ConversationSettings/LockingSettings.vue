@@ -28,15 +28,17 @@
 			{{ t('spreed', 'This will also terminate the ongoing call.') }}
 		</div>
 		<div>
-			<input id="moderation_settings_lock_conversation_checkbox"
-				aria-describedby="moderation_settings_lock_conversation_hint"
-				type="checkbox"
-				class="checkbox"
-				name="moderation_settings_lock_conversation_checkbox"
-				:checked="isReadOnly"
-				:disabled="isReadOnlyStateLoading"
-				@change="toggleReadOnly">
-			<label for="moderation_settings_lock_conversation_checkbox">{{ t('spreed', 'Lock conversation') }}</label>
+			<h3>{{ t('spreed', 'Limit writing to a conversation') }}</h3>
+			<p>
+				<Multiselect id="limit_writing"
+					v-model="writingConversationSelected"
+					:options="writingConversationOptions"
+					:placeholder="t('spreed', 'Limit writing to conversations')"
+					label="label"
+					track-by="value"
+					:disabled="isReadOnlyStateLoading"
+					@input="saveWritingConversations" />
+			</p>
 		</div>
 	</div>
 </template>
@@ -44,9 +46,20 @@
 <script>
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { CONVERSATION } from '../../constants'
+import Multiselect from '@nextcloud/vue/dist/Components/Multiselect'
+
+const writingConversationOptions = [
+	{ value: 0, label: t('spreed', 'Everyone can write') },
+	{ value: 2, label: t('spreed', 'Only moderators can write') },
+	{ value: 1, label: t('spreed', 'Read only') },
+]
 
 export default {
 	name: 'LockingSettings',
+
+	components: {
+		Multiselect,
+	},
 
 	props: {
 		token: {
@@ -58,6 +71,9 @@ export default {
 	data() {
 		return {
 			isReadOnlyStateLoading: false,
+			writingConversationOptions,
+			writingConversationSelected: [],
+			loadingWritingConversations: false,
 		}
 	},
 
@@ -75,9 +91,13 @@ export default {
 		},
 	},
 
+	mounted() {
+		this.writingConversationSelected = this.writingConversationOptions[this.conversation.readOnly]
+	},
+
 	methods: {
-		async toggleReadOnly() {
-			const newReadOnly = this.isReadOnly ? CONVERSATION.STATE.READ_WRITE : CONVERSATION.STATE.READ_ONLY
+		async saveWritingConversations() {
+			const newReadOnly = this.writingConversationSelected.value
 			this.isReadOnlyStateLoading = true
 			try {
 				await this.$store.dispatch('setReadOnlyState', {
@@ -104,3 +124,9 @@ export default {
 
 }
 </script>
+
+<style lang="scss" scoped>
+	.multiselect {
+		width: 100%;
+	}
+</style>

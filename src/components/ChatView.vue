@@ -60,7 +60,7 @@
 import MessagesList from './MessagesList/MessagesList'
 import NewMessageForm from './NewMessageForm/NewMessageForm'
 import { processFiles } from '../utils/fileUpload'
-import { CONVERSATION } from '../constants'
+import { CONVERSATION, PARTICIPANT } from '../constants'
 
 export default {
 
@@ -105,10 +105,24 @@ export default {
 		},
 		isReadOnly() {
 			if (this.$store.getters.conversation(this.token)) {
-				return this.$store.getters.conversation(this.token).readOnly === CONVERSATION.STATE.READ_ONLY
+				return (this.$store.getters.conversation(this.token).readOnly === CONVERSATION.STATE.READ_ONLY)
+				|| (this.$store.getters.conversation(this.token).readOnly === CONVERSATION.STATE.WRITE_ONLY_MOD && !this.selfIsModerator)
 			} else {
 				return undefined
 			}
+		},
+
+		currentParticipant() {
+			return this.$store.getters.conversation(this.token) || {
+				sessionId: '0',
+				participantType: this.$store.getters.getUserId() !== null ? PARTICIPANT.TYPE.USER : PARTICIPANT.TYPE.GUEST,
+			}
+		},
+
+		selfIsModerator() {
+			return this.currentParticipant.participantType === PARTICIPANT.TYPE.OWNER
+				|| this.currentParticipant.participantType === PARTICIPANT.TYPE.MODERATOR
+				|| this.currentParticipant.participantType === PARTICIPANT.TYPE.GUEST_MODERATOR
 		},
 
 		token() {

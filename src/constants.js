@@ -33,6 +33,7 @@ export const CONVERSATION = {
 	STATE: {
 		READ_WRITE: 0,
 		READ_ONLY: 1,
+		WRITE_ONLY_MOD: 2,
 	},
 	LISTABLE: {
 		NONE: 0,

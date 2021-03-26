@@ -105,7 +105,7 @@ class Create extends Base {
 		$owner = $input->getOption('owner');
 		$moderators = $input->getOption('moderator');
 
-		if (!in_array($readOnly, [null, (string)Room::READ_WRITE, (string)Room::READ_ONLY], true)) {
+		if (!in_array($readOnly, [null, (string)Room::READ_WRITE, (string)Room::READ_ONLY], (string)Room::WRITE_ONLY_MOD,true)) {
 			$output->writeln('<error>Invalid value for option "--readonly" given.</error>');
 			return 1;
 		}
@@ -173,7 +173,7 @@ class Create extends Base {
 			case 'moderator':
 				return $this->completeParticipantValues($context);
 			case 'readonly':
-				return [(string)Room::READ_ONLY, (string)Room::READ_WRITE];
+				return [(string)Room::READ_ONLY, (string)Room::READ_WRITE, (string)Room::WRITE_ONLY_MOD];
 			case 'listable':
 				return [
 					(string)Room::LISTABLE_ALL,

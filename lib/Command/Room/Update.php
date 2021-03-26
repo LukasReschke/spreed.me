@@ -65,7 +65,7 @@ class Update extends Base {
 				'readonly',
 				null,
 				InputOption::VALUE_REQUIRED,
-				'Modifies the room to be read-only (value 1) or read-write (value 0)'
+				'Modifies the room to be read-only (value 1), read-write (value 0), WRITE_ONLY_MOD (value 2)'
 			)->addOption(
 				'listable',
 				null,
@@ -99,7 +99,7 @@ class Update extends Base {
 			return 1;
 		}
 
-		if (!in_array($readOnly, [null, (string)Room::READ_WRITE, (string)Room::READ_ONLY], true)) {
+		if (!in_array($readOnly, [null, (string)Room::READ_WRITE, (string)Room::READ_ONLY, (string)Room::WRITE_ONLY_MOD], true)) {
 			$output->writeln('<error>Invalid value for option "--readonly" given.</error>');
 			return 1;
 		}
