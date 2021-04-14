@@ -1,0 +1,56 @@
+name: Psalm Security Analysis
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - stable*
+  schedule:
+    - cron: '0 0 * * 0'
+
+env:
+  APP_NAME: spreed
+
+jobs:
+  psalm:
+    runs-on: ubuntu-latest
+
+    strategy:
+      # do not stop on another job's failure
+      fail-fast: false
+      matrix:
+        server-versions: ['master']
+
+    name: Psalm Security ${{ matrix.server-versions }}
+
+    steps:
+      - name: Checkout server
+        uses: actions/checkout@v2
+        with:
+          repository: nextcloud/server
+          ref: ${{ matrix.server-versions }}
+
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+
+      - name: Checkout app
+        uses: actions/checkout@v2
+        with:
+          path: apps/${{ env.APP_NAME }}
+
+      - name: Psalm
+        working-directory: apps/${{ env.APP_NAME }}
+        uses: docker://vimeo/psalm-github-actions
+        with:
+          security_analysis: true
+          report_file: results.sarif
+
+      - name: Upload Security Analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: results.sarif

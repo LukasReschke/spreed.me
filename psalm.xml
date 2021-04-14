@@ -8,6 +8,9 @@
 	xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
 	errorBaseline="tests/psalm-baseline.xml"
 >
+	<plugins>
+		<plugin filename="../../build/psalm/AppFrameworkTainter.php" />
+	</plugins>
 	<projectFiles>
 		<directory name="lib" />
 		<ignoreFiles>
