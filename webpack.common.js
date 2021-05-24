@@ -84,6 +84,10 @@ module.exports = {
 				test: /\.(png|jpg|gif|svg)$/,
 				loader: 'url-loader',
 			},
+			{
+				test: /\.ogg$/,
+				loader: 'file-loader',
+			},
 		],
 	},
 	plugins: [
