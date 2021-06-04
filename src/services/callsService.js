@@ -29,13 +29,22 @@ import {
 
 /**
  * Join a call as participant
+ *
+ * The flags constrain the media to send when joining the call. If no flags are
+ * provided both audio and video are available. Otherwise only the specified
+ * media will be allowed to be sent.
+ *
+ * Note that the flags are constraints, but not requirements. Only the specified
+ * media is allowed to be sent, but it is not guaranteed to be sent. For
+ * example, if WITH_VIDEO is provided but the device does not have a camera.
+ *
  * @param {string} token The token of the call to be joined.
  * @param {int} flags The available PARTICIPANT.CALL_FLAG for this participants
+ * @returns {int} The actual flags based on the available media
  */
 const joinCall = async function(token, flags) {
 	try {
-		// FIXME flags is ignored?
-		await signalingJoinCall(token)
+		return await signalingJoinCall(token, flags)
 	} catch (error) {
 		console.debug('Error while joining call: ', error)
 	}

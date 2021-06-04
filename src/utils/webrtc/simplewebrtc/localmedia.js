@@ -31,10 +31,6 @@ function LocalMedia(opts) {
 	const config = this.config = {
 		detectSpeakingEvents: false,
 		audioFallback: false,
-		media: {
-			audio: true,
-			video: true,
-		},
 		harkOptions: null,
 		logger: mockconsole,
 	}
@@ -123,7 +119,17 @@ const cloneLinkedStream = function(stream) {
 
 LocalMedia.prototype.start = function(mediaConstraints, cb, context) {
 	const self = this
-	const constraints = mediaConstraints || this.config.media
+	const constraints = mediaConstraints || { audio: true, video: true }
+
+	if (!constraints.audio && !constraints.video) {
+		self.emit('localStream', constraints, null)
+
+		if (cb) {
+			return cb(null, null, constraints)
+		}
+
+		return
+	}
 
 	if (!webrtcIndex.mediaDevicesManager.isSupported()) {
 		const error = new Error('MediaStreamError')
@@ -187,7 +193,7 @@ LocalMedia.prototype.start = function(mediaConstraints, cb, context) {
 		webrtcIndex.mediaDevicesManager.on('change:videoInputId', self._handleVideoInputIdChangedBound)
 
 		if (cb) {
-			return cb(null, stream)
+			return cb(null, stream, constraints)
 		}
 	}).catch(function(err) {
 		// Fallback for users without a camera or with a camera that can not be

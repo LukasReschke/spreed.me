@@ -63,6 +63,12 @@
 						:show-user-status="false"
 						:class="avatarClass" />
 				</template>
+				<template v-else-if="model.attributes.subscribersOnlyPlaceholder">
+					<div
+						:class="guestAvatarClass"
+						style="background-size: 100%;"
+						class="avatar icon-contacts" />
+				</template>
 				<template v-else>
 					<VideoBackground
 						:display-name="participantName" />
@@ -252,6 +258,10 @@ export default {
 		},
 
 		participantUserId() {
+			if (this.model.attributes.subscribersOnlyPlaceholder) {
+				return null
+			}
+
 			if (this.model.attributes.userId) {
 				return this.model.attributes.userId
 			}
@@ -275,6 +285,12 @@ export default {
 		},
 
 		participantName() {
+			if (this.model.attributes.subscribersOnlyPlaceholder) {
+				return t('spreed', 'Participants not allowed to publish: {number}', {
+					number: this.model.attributes.subscribersOnlyCount,
+				})
+			}
+
 			if (this.model.attributes.name) {
 				return this.model.attributes.name
 			}

@@ -96,13 +96,13 @@
 				decorative />
 		</div>
 		<Actions
-			v-if="canBeModerated && !isSearched"
+			v-if="!isSearched"
 			container="#content-vue"
 			:aria-label="participantSettingsAriaLabel"
 			:force-menu="true"
 			class="participant-row__actions">
 			<ActionText
-				v-if="attendeePin"
+				v-if="canSeeAttendeePin"
 				:title="t('spreed', 'Dial-in PIN')"
 				icon="icon-password">
 				{{ attendeePin }}
@@ -119,15 +119,28 @@
 				@click="promoteToModerator">
 				{{ t('spreed', 'Promote to moderator') }}
 			</ActionButton>
-			<ActionButton v-if="isEmailActor"
+			<ActionButton v-if="canBeGrantedPublishingPermissions"
+				icon="icon-audio"
+				:close-after-click="true"
+				@click="grantPublishingPermissions">
+				{{ t('spreed', 'Grant publishing permissions') }}
+			</ActionButton>
+			<ActionButton v-if="canBeRevokedPublishingPermissions"
+				icon="icon-audio-off"
+				:close-after-click="true"
+				@click="revokePublishingPermissions">
+				{{ t('spreed', 'Revoke publishing permissions') }}
+			</ActionButton>
+			<ActionButton v-if="canResendInvitation"
 				icon="icon-mail"
 				:close-after-click="true"
 				@click="resendInvitation">
 				{{ t('spreed', 'Resend invitation') }}
 			</ActionButton>
 			<ActionSeparator
-				v-if="attendeePin || canBePromoted || canBeDemoted || isEmailActor" />
+				v-if="(canSeeAttendeePin || canBePromoted || canBeDemoted || canBeGrantedPublishingPermissions || canBeRevokedPublishingPermissions || canResendInvitation) && canBeModerated" />
 			<ActionButton
+				v-if="canBeModerated"
 				icon="icon-delete"
 				:close-after-click="true"
 				@click="removeParticipant">
@@ -415,6 +428,10 @@ export default {
 				&& this.selfIsModerator
 				&& !this.isBridgeBotUser
 		},
+		canSeeAttendeePin() {
+			return this.canBeModerated
+				&& this.attendeePin
+		},
 		canBeDemoted() {
 			return this.canBeModerated
 				&& [PARTICIPANT.TYPE.MODERATOR, PARTICIPANT.TYPE.GUEST_MODERATOR].indexOf(this.participantType) !== -1
@@ -424,6 +441,18 @@ export default {
 			return this.canBeModerated
 				&& !this.isModerator
 				&& !this.isGroup
+		},
+		canBeGrantedPublishingPermissions() {
+			return this.participant.publishingPermissions !== PARTICIPANT.PUBLISHING_PERMISSIONS.ALL
+				&& this.selfIsModerator
+		},
+		canBeRevokedPublishingPermissions() {
+			return this.participant.publishingPermissions !== PARTICIPANT.PUBLISHING_PERMISSIONS.NONE
+				&& this.selfIsModerator
+		},
+		canResendInvitation() {
+			return this.canBeModerated
+				&& this.isEmailActor
 		},
 		preloadedUserStatus() {
 			if (this.participant.hasOwnProperty('statusMessage')) {
@@ -477,6 +506,20 @@ export default {
 			await this.$store.dispatch('demoteFromModerator', {
 				token: this.token,
 				attendeeId: this.participant.attendeeId,
+			})
+		},
+		async grantPublishingPermissions() {
+			await this.$store.dispatch('setPublishingPermissions', {
+				token: this.token,
+				attendeeId: this.participant.attendeeId,
+				state: PARTICIPANT.PUBLISHING_PERMISSIONS.ALL,
+			})
+		},
+		async revokePublishingPermissions() {
+			await this.$store.dispatch('setPublishingPermissions', {
+				token: this.token,
+				attendeeId: this.participant.attendeeId,
+				state: PARTICIPANT.PUBLISHING_PERMISSIONS.NONE,
 			})
 		},
 		async resendInvitation() {

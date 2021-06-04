@@ -93,6 +93,7 @@ class CallController extends AEnvironmentAwareController {
 				'token' => $this->room->getToken(),
 				'lastPing' => $participant->getSession()->getLastPing(),
 				'sessionId' => $participant->getSession()->getSessionId(),
+				'publishingPermissions' => $participant->getAttendee()->getPublishingPermissions(),
 			];
 		}
 

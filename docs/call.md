@@ -28,6 +28,7 @@
         `displayName` | string | v3 | | The display name of the attendee
         `lastPing` | int | v1 | | Timestamp of the last ping of the user (should be used for sorting)
         `sessionId` | string | v1 | | 512 character long string
+        `publishingPermissions` | int | v4 | Publishing permissions for the participant (see [constants list](constants.md#participant-publishing-permissions))
 
 ## Join a call
 

@@ -372,6 +372,7 @@ class RoomController extends AEnvironmentAwareController {
 			'actorType' => '',
 			'actorId' => '',
 			'attendeeId' => 0,
+			'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_NONE,
 			'canEnableSIP' => false,
 			'attendeePin' => '',
 			'description' => '',
@@ -437,6 +438,7 @@ class RoomController extends AEnvironmentAwareController {
 			'actorType' => $attendee->getActorType(),
 			'actorId' => $attendee->getActorId(),
 			'attendeeId' => $attendee->getId(),
+			'publishingPermissions' => $attendee->getPublishingPermissions(),
 			'description' => $room->getDescription(),
 			'listable' => $room->getListable(),
 		]);
@@ -906,6 +908,7 @@ class RoomController extends AEnvironmentAwareController {
 				'actorId' => $participant->getAttendee()->getActorId(),
 				'actorType' => $participant->getAttendee()->getActorType(),
 				'displayName' => $participant->getAttendee()->getActorId(),
+				'publishingPermissions' => $participant->getAttendee()->getPublishingPermissions(),
 				'attendeePin' => '',
 			];
 			if ($this->talkConfig->isSIPConfigured()
@@ -1424,6 +1427,30 @@ class RoomController extends AEnvironmentAwareController {
 		}
 
 		$this->participantService->updateParticipantType($this->room, $targetParticipant, $newType);
+
+		return new DataResponse();
+	}
+
+	/**
+	 * @PublicPage
+	 * @RequireModeratorParticipant
+	 *
+	 * @param int $attendeeId
+	 * @param int $state
+	 * @return DataResponse
+	 */
+	public function setParticipantPublishingPermissions(int $attendeeId, int $state): DataResponse {
+		try {
+			$targetParticipant = $this->room->getParticipantByAttendeeId($attendeeId);
+		} catch (ParticipantNotFoundException $e) {
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
+		}
+
+		if ($this->room->getType() === Room::ONE_TO_ONE_CALL) {
+			return new DataResponse([], Http::STATUS_BAD_REQUEST);
+		}
+
+		$this->participantService->updatePublishingPermissions($this->room, $targetParticipant, $state);
 
 		return new DataResponse();
 	}

@@ -116,7 +116,7 @@ function startCall(signaling, configuration) {
 	}
 
 	signaling.joinCall(pendingJoinCallToken, flags).then(() => {
-		startedCall()
+		startedCall(flags)
 	}).catch(error => {
 		failedToStartCall(error)
 	})
@@ -127,18 +127,9 @@ function setupWebRtc() {
 		return
 	}
 
-	const _signaling = signaling
-
-	webRtc = initWebRtc(_signaling, callParticipantCollection, localCallParticipantModel)
+	webRtc = initWebRtc(signaling, callParticipantCollection, localCallParticipantModel)
 	localCallParticipantModel.setWebRtc(webRtc)
 	localMediaModel.setWebRtc(webRtc)
-
-	webRtc.on('localMediaStarted', (configuration) => {
-		startCall(_signaling, configuration)
-	})
-	webRtc.on('localMediaError', () => {
-		startCall(_signaling, null)
-	})
 }
 
 /**
@@ -159,9 +150,11 @@ async function signalingJoinConversation(token, sessionId) {
  * Join the call of the given conversation
  *
  * @param {string} token Conversation to join the call
- * @returns {Promise<void>}
+ * @param {int} flags Bitwise combination of PARTICIPANT.CALL_FLAG
+ * @returns {Promise<void>} Resolved with the actual flags based on the
+ *          available media
  */
-async function signalingJoinCall(token) {
+async function signalingJoinCall(token, flags) {
 	if (tokensInSignaling[token]) {
 		pendingJoinCallToken = token
 
@@ -175,11 +168,47 @@ async function signalingJoinCall(token) {
 			callAnalyzer = new CallAnalyzer(localMediaModel, null, callParticipantCollection)
 		}
 
+		const _signaling = signaling
+
 		return new Promise((resolve, reject) => {
 			startedCall = resolve
 			failedToStartCall = reject
 
-			webRtc.startMedia(token)
+			// The previous state might be wiped after the media is started, so
+			// it should be saved now.
+			const enableAudio = !localStorage.getItem('audioDisabled_' + token)
+			const enableVideo = !localStorage.getItem('videoDisabled_' + token)
+
+			const startCallOnceLocalMediaStarted = (configuration) => {
+				webRtc.off('localMediaStarted', startCallOnceLocalMediaStarted)
+				webRtc.off('localMediaError', startCallOnceLocalMediaError)
+
+				if (enableAudio) {
+					localMediaModel.enableAudio()
+				} else {
+					localMediaModel.disableAudio()
+				}
+				if (enableVideo) {
+					localMediaModel.enableVideo()
+				} else {
+					localMediaModel.disableVideo()
+				}
+
+				startCall(_signaling, configuration)
+			}
+			const startCallOnceLocalMediaError = () => {
+				webRtc.off('localMediaStarted', startCallOnceLocalMediaStarted)
+				webRtc.off('localMediaError', startCallOnceLocalMediaError)
+
+				startCall(_signaling, null)
+			}
+
+			// ".once" can not be used, as both handlers need to be removed when
+			// just one of them is executed.
+			webRtc.on('localMediaStarted', startCallOnceLocalMediaStarted)
+			webRtc.on('localMediaError', startCallOnceLocalMediaError)
+
+			webRtc.startMedia(token, flags)
 		})
 	}
 }

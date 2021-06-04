@@ -392,6 +392,9 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 				if (isset($expectedKeys['attendeePin'])) {
 					$data['attendeePin'] = $attendee['attendeePin'] ? '**PIN**' : '';
 				}
+				if (isset($expectedKeys['publishingPermissions'])) {
+					$data['publishingPermissions'] = (string) $attendee['publishingPermissions'];
+				}
 
 				if (!isset(self::$userToAttendeeId[$attendee['actorType']])) {
 					self::$userToAttendeeId[$attendee['actorType']] = [];
@@ -407,6 +410,9 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 				}
 				if (isset($attendee['participantType'])) {
 					$attendee['participantType'] = (string)$this->mapParticipantTypeTestInput($attendee['participantType']);
+				}
+				if (isset($attendee['publishingPermissions'])) {
+					$attendee['publishingPermissions'] = (string)$this->mapParticipantPublishingPermissionsTestInput($attendee['publishingPermissions']);
 				}
 				return $attendee;
 			}, $formData->getHash());
@@ -442,7 +448,7 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 	}
 
 	protected function sortAttendees(array $a1, array $a2): int {
-		if ($a1['participantType'] !== $a2['participantType']) {
+		if (array_key_exists('participantType', $a1) && array_key_exists('participantType', $a2) && $a1['participantType'] !== $a2['participantType']) {
 			return $a1['participantType'] <=> $a2['participantType'];
 		}
 		if ($a1['actorType'] !== $a2['actorType']) {
@@ -466,6 +472,22 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 		}
 
 		Assert::fail('Invalid test input value for participant type');
+	}
+
+	private function mapParticipantPublishingPermissionsTestInput($publishingPermissions) {
+		if (is_numeric($publishingPermissions)) {
+			return $publishingPermissions;
+		}
+
+		switch ($publishingPermissions) {
+			case 'NONE': return 0;
+			case 'AUDIO': return 1;
+			case 'VIDEO': return 2;
+			case 'SCREENSHARING': return 4;
+			case 'ALL': return 7;
+		}
+
+		Assert::fail('Invalid test input value for participant publishing permissions');
 	}
 
 	/**
@@ -1050,6 +1072,52 @@ class FeatureContext implements Context, SnippetAcceptingContext {
 		$this->sendRequest(
 			$isPromotion === 'promotes' ? 'POST' : 'DELETE',
 			'/apps/spreed/api/' . $apiVersion . '/room/' . self::$identifierToToken[$identifier] . '/moderators',
+			new TableNode($requestParameters)
+		);
+		$this->assertStatusCode($this->response, $statusCode);
+	}
+
+	/**
+	 * @When /^user "([^"]*)" sets publishing permissions for "([^"]*)" in room "([^"]*)" to "([^"]*)" with (\d+) \((v4)\)$/
+	 *
+	 * @param string $user
+	 * @param string $identifier
+	 * @param string $publishingPermissionsString
+	 * @param int $statusCode
+	 * @param string $apiVersion
+	 */
+	public function userSetsPublishingPermissionsForInRoomTo(string $user, string $participant, string $identifier, string $publishingPermissionsString, int $statusCode, string $apiVersion): void {
+		if ($participant === 'stranger') {
+			$attendeeId = 123456789;
+		} elseif (strpos($participant, 'guest') === 0) {
+			$sessionId = self::$userToSessionId[$participant];
+			$attendeeId = $this->getAttendeeId('guests', sha1($sessionId), $identifier, $statusCode === 200 ? $user : null);
+		} else {
+			$attendeeId = $this->getAttendeeId('users', $participant, $identifier, $statusCode === 200 ? $user : null);
+		}
+
+		if ($publishingPermissionsString === 'NONE') {
+			$publishingPermissions = 0;
+		} elseif ($publishingPermissionsString === 'AUDIO') {
+			$publishingPermissions = 1;
+		} elseif ($publishingPermissionsString === 'VIDEO') {
+			$publishingPermissions = 2;
+		} elseif ($publishingPermissionsString === 'SCREENSHARING') {
+			$publishingPermissions = 4;
+		} elseif ($publishingPermissionsString === 'ALL') {
+			$publishingPermissions = 7;
+		} else {
+			Assert::fail('Invalid publishing permissions');
+		}
+
+		$requestParameters = [
+			['attendeeId', $attendeeId],
+			['state', $publishingPermissions],
+		];
+
+		$this->setCurrentUser($user);
+		$this->sendRequest(
+			'PUT', '/apps/spreed/api/' . $apiVersion . '/room/' . self::$identifierToToken[$identifier] . '/participants/publishing-permissions',
 			new TableNode($requestParameters)
 		);
 		$this->assertStatusCode($this->response, $statusCode);

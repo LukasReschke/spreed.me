@@ -109,6 +109,8 @@ class Room {
 	public const EVENT_AFTER_USERS_ADD = self::class . '::postAddUsers';
 	public const EVENT_BEFORE_PARTICIPANT_TYPE_SET = self::class . '::preSetParticipantType';
 	public const EVENT_AFTER_PARTICIPANT_TYPE_SET = self::class . '::postSetParticipantType';
+	public const EVENT_BEFORE_PARTICIPANT_PUBLISHING_PERMISSIONS_SET = self::class . '::preSetParticipantPublishingPermissions';
+	public const EVENT_AFTER_PARTICIPANT_PUBLISHING_PERMISSIONS_SET = self::class . '::postSetParticipantPublishingPermissions';
 	public const EVENT_BEFORE_USER_REMOVE = self::class . '::preRemoveUser';
 	public const EVENT_AFTER_USER_REMOVE = self::class . '::postRemoveUser';
 	public const EVENT_BEFORE_PARTICIPANT_REMOVE = self::class . '::preRemoveBySession';

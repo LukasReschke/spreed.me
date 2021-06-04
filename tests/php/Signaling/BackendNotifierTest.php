@@ -27,6 +27,7 @@ use OCA\Talk\Chat\CommentsManager;
 use OCA\Talk\Config;
 use OCA\Talk\Events\SignalingRoomPropertiesEvent;
 use OCA\Talk\Manager;
+use OCA\Talk\Model\Attendee;
 use OCA\Talk\Model\AttendeeMapper;
 use OCA\Talk\Model\SessionMapper;
 use OCA\Talk\Participant;
@@ -665,6 +666,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => $userSession,
 						'participantType' => Participant::MODERATOR,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
 						'userId' => $this->userId,
 					],
 				],
@@ -674,6 +676,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => $userSession,
 						'participantType' => Participant::MODERATOR,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
 						'userId' => $this->userId,
 					],
 				],
@@ -698,6 +701,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => $guestSession,
 						'participantType' => Participant::GUEST_MODERATOR,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
 					],
 				],
 				'users' => [
@@ -706,6 +710,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => $userSession,
 						'participantType' => Participant::MODERATOR,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
 						'userId' => $this->userId,
 					],
 					[
@@ -713,6 +718,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => $guestSession,
 						'participantType' => Participant::GUEST_MODERATOR,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
 					],
 				],
 			],
@@ -739,6 +745,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => $userSession,
 						'participantType' => Participant::MODERATOR,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
 						'userId' => $this->userId,
 					],
 					[
@@ -746,6 +753,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => 0,
 						'participantType' => Participant::MODERATOR,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_NONE,
 						'userId' => $notJoinedUserId,
 					],
 					[
@@ -753,6 +761,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => $guestSession,
 						'participantType' => Participant::GUEST_MODERATOR,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
 					],
 				],
 			],
@@ -771,6 +780,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => $userSession,
 						'participantType' => Participant::USER,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
 						'userId' => $this->userId,
 					],
 				],
@@ -780,6 +790,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => $userSession,
 						'participantType' => Participant::USER,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
 						'userId' => $this->userId,
 					],
 					[
@@ -787,6 +798,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => 0,
 						'participantType' => Participant::MODERATOR,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_NONE,
 						'userId' => $notJoinedUserId,
 					],
 					[
@@ -794,6 +806,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => $guestSession,
 						'participantType' => Participant::GUEST_MODERATOR,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
 					],
 				],
 			],
@@ -812,6 +825,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => $guestSession,
 						'participantType' => Participant::GUEST,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
 					],
 				],
 				'users' => [
@@ -820,6 +834,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => $userSession,
 						'participantType' => Participant::USER,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
 						'userId' => $this->userId,
 					],
 					[
@@ -827,6 +842,7 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => 0,
 						'participantType' => Participant::MODERATOR,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_NONE,
 						'userId' => $notJoinedUserId,
 					],
 					[
@@ -834,6 +850,51 @@ class BackendNotifierTest extends \Test\TestCase {
 						'lastPing' => 0,
 						'sessionId' => $guestSession,
 						'participantType' => Participant::GUEST,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
+					],
+				],
+			],
+		]);
+
+		$this->controller->clearRequests();
+		$this->participantService->updatePublishingPermissions($room, $guestParticipant, Attendee::PUBLISHING_PERMISSIONS_NONE);
+
+		$this->assertMessageWasSent($room, [
+			'type' => 'participants',
+			'participants' => [
+				'changed' => [
+					[
+						'permissions' => [],
+						'inCall' => 0,
+						'lastPing' => 0,
+						'sessionId' => $guestSession,
+						'participantType' => Participant::GUEST,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_NONE,
+					],
+				],
+				'users' => [
+					[
+						'inCall' => 0,
+						'lastPing' => 0,
+						'sessionId' => $userSession,
+						'participantType' => Participant::USER,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_ALL,
+						'userId' => $this->userId,
+					],
+					[
+						'inCall' => 0,
+						'lastPing' => 0,
+						'sessionId' => 0,
+						'participantType' => Participant::MODERATOR,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_NONE,
+						'userId' => $notJoinedUserId,
+					],
+					[
+						'inCall' => 0,
+						'lastPing' => 0,
+						'sessionId' => $guestSession,
+						'participantType' => Participant::GUEST,
+						'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_NONE,
 					],
 				],
 			],

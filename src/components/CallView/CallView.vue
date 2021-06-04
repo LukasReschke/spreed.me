@@ -90,6 +90,7 @@
 						:is-stripe="false"
 						:show-controls="false"
 						:is-big="true"
+						:token="token"
 						:local-media-model="localMediaModel"
 						:video-container-aspect-ratio="videoContainerAspectRatio"
 						:local-call-participant-model="localCallParticipantModel"
@@ -143,6 +144,7 @@
 				:show-controls="false"
 				:fit-video="true"
 				:is-stripe="true"
+				:token="token"
 				:local-media-model="localMediaModel"
 				:video-container-aspect-ratio="videoContainerAspectRatio"
 				:local-call-participant-model="localCallParticipantModel"
@@ -156,6 +158,7 @@
 <script>
 import Grid from './Grid/Grid'
 import { localMediaModel, localCallParticipantModel, callParticipantCollection } from '../../utils/webrtc/index'
+import { ConnectionState } from '../../utils/webrtc/models/CallParticipantModel'
 import { fetchPeers } from '../../services/callsService'
 import { showMessage } from '@nextcloud/dialogs'
 import LocalMediaControls from './shared/LocalMediaControls'
@@ -164,6 +167,7 @@ import Video from './shared/Video'
 import LocalVideo from './shared/LocalVideo'
 import Screen from './shared/Screen'
 import debounce from 'debounce'
+import { PARTICIPANT } from '../../constants'
 import { EventBus } from '../../services/EventBus'
 
 export default {
@@ -210,7 +214,63 @@ export default {
 	},
 	computed: {
 		callParticipantModels() {
-			return callParticipantCollection.callParticipantModels.filter(callParticipantModel => !callParticipantModel.attributes.internal)
+			let callParticipantModels = callParticipantCollection.callParticipantModels.filter(callParticipantModel => !callParticipantModel.attributes.internal)
+
+			if (this.conversation.objectType === 'share:password'
+				|| this.conversation.objectType === 'file') {
+				return callParticipantModels
+			}
+
+			const allParticipantsCount = callParticipantModels.length
+
+			// Filter out subscriber only participants
+			callParticipantModels = callParticipantCollection.callParticipantModels.filter(callParticipantModel => {
+				const nextcloudSessionId = callParticipantModel.attributes.nextcloudSessionId
+
+				const participantIndex = this.$store.getters.getParticipantIndex(this.token, { sessionId: nextcloudSessionId })
+				if (participantIndex === -1) {
+					const peerData = this.$store.getters.getPeer(this.token, nextcloudSessionId)
+					if (!peerData) {
+						return false
+					}
+
+					return peerData.publishingPermissions !== PARTICIPANT.PUBLISHING_PERMISSIONS.NONE
+				}
+
+				const participant = this.$store.getters.getParticipant(this.token, participantIndex)
+
+				return participant.publishingPermissions !== PARTICIPANT.PUBLISHING_PERMISSIONS.NONE
+			})
+
+			const subscribersOnlyCount = allParticipantsCount - callParticipantModels.length
+
+			if (subscribersOnlyCount > 0) {
+				const subscribersOnlyPlaceholder = {
+					attributes: {
+						peerId: '-1',
+						connectionState: ConnectionState.CONNECTED,
+
+						speaking: false,
+						screen: null,
+						raisedHand: false,
+
+						subscribersOnlyPlaceholder: true,
+						subscribersOnlyCount: subscribersOnlyCount,
+					},
+				}
+
+				callParticipantModels.push(subscribersOnlyPlaceholder)
+			}
+
+			return callParticipantModels
+		},
+
+		conversation() {
+			return this.$store.getters.conversations[this.token] || {
+				sessionId: '0',
+				participantType: this.$store.getters.getUserId() !== null ? PARTICIPANT.TYPE.USER : PARTICIPANT.TYPE.GUEST,
+				objectType: null,
+			}
 		},
 
 		reversedCallParticipantModels() {
@@ -385,11 +445,14 @@ export default {
 	},
 	mounted() {
 		EventBus.$on('refreshPeerList', this.debounceFetchPeers)
+		EventBus.$on('Signaling::participantListChanged', this.debounceFetchPeers)
+		this.debounceFetchPeers()
 
 		callParticipantCollection.on('remove', this._lowerHandWhenParticipantLeaves)
 	},
 	beforeDestroy() {
 		EventBus.$off('refreshPeerList', this.debounceFetchPeers)
+		EventBus.$off('Signaling::participantListChanged', this.debounceFetchPeers)
 
 		callParticipantCollection.off('remove', this._lowerHandWhenParticipantLeaves)
 	},

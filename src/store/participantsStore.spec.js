@@ -6,6 +6,7 @@ import { PARTICIPANT } from '../constants'
 import {
 	promoteToModerator,
 	demoteFromModerator,
+	setPublishingPermissions,
 	removeAttendeeFromConversation,
 	resendInvitations,
 	joinConversation,
@@ -23,6 +24,7 @@ import participantsStore from './participantsStore'
 jest.mock('../services/participantsService', () => ({
 	promoteToModerator: jest.fn(),
 	demoteFromModerator: jest.fn(),
+	setPublishingPermissions: jest.fn(),
 	removeAttendeeFromConversation: jest.fn(),
 	resendInvitations: jest.fn(),
 	joinConversation: jest.fn(),
@@ -284,6 +286,54 @@ describe('participantsStore', () => {
 				await testDemoteModerator(PARTICIPANT.TYPE.GUEST_MODERATOR, PARTICIPANT.TYPE.GUEST)
 			})
 		})
+
+		describe('set publishing permissions', () => {
+			test('does nothing when setting publishing permissions for not found attendee', () => {
+				store.dispatch('setPublishingPermissions', {
+					token: TOKEN,
+					attendeeId: 1,
+					state: PARTICIPANT.PUBLISHING_PERMISSIONS.ALL,
+				})
+
+				expect(setPublishingPermissions).not.toHaveBeenCalled()
+			})
+
+			async function testSetPublishingPermissions(publishingPermissions, expectedPublishingPermissions) {
+				setPublishingPermissions.mockResolvedValue()
+
+				store.dispatch('addParticipant', {
+					token: TOKEN,
+					participant: {
+						attendeeId: 1,
+						publishingPermissions,
+					},
+				})
+				await store.dispatch('setPublishingPermissions', {
+					token: TOKEN,
+					attendeeId: 1,
+					state: expectedPublishingPermissions,
+				})
+				expect(setPublishingPermissions)
+					.toHaveBeenCalledWith(TOKEN, {
+						attendeeId: 1,
+						state: expectedPublishingPermissions
+					})
+
+				expect(store.getters.participantsList(TOKEN)).toStrictEqual([
+					{
+						attendeeId: 1,
+						publishingPermissions: expectedPublishingPermissions,
+					},
+				])
+			}
+
+			test('grants all publishing permissions', async() => {
+				await testSetPublishingPermissions(PARTICIPANT.PUBLISHING_PERMISSIONS.NONE, PARTICIPANT.PUBLISHING_PERMISSIONS.ALL)
+			})
+			test('revokes all publishing permissions', async() => {
+				await testSetPublishingPermissions(PARTICIPANT.PUBLISHING_PERMISSIONS.ALL, PARTICIPANT.PUBLISHING_PERMISSIONS.NONE)
+			})
+		})
 	})
 
 	describe('peers list', () => {
@@ -335,12 +385,15 @@ describe('participantsStore', () => {
 				},
 			})
 
-			joinCall.mockResolvedValue()
+			// The requested flags and the actual flags can be different if some
+			// media device is not available.
+			const actualFlags = PARTICIPANT.CALL_FLAG.WITH_AUDIO
+			joinCall.mockResolvedValue(actualFlags)
 
 			expect(store.getters.isInCall(TOKEN)).toBe(false)
 			expect(store.getters.isConnecting(TOKEN)).toBe(false)
 
-			const flags = PARTICIPANT.CALL_FLAG.WITH_VIDEO
+			const flags = PARTICIPANT.CALL_FLAG.WITH_AUDIO | PARTICIPANT.CALL_FLAG.WITH_VIDEO
 			await store.dispatch('joinCall', {
 				token: TOKEN,
 				participantIdentifier: {
@@ -356,7 +409,7 @@ describe('participantsStore', () => {
 				{
 					attendeeId: 1,
 					sessionId: 'session-id-1',
-					inCall: flags,
+					inCall: actualFlags,
 					participantType: PARTICIPANT.TYPE.USER,
 				},
 			])
@@ -381,12 +434,15 @@ describe('participantsStore', () => {
 			},
 		})
 
-		joinCall.mockResolvedValue()
+		// The requested flags and the actual flags can be different if some
+		// media device is not available.
+		const actualFlags = PARTICIPANT.CALL_FLAG.WITH_AUDIO
+		joinCall.mockResolvedValue(actualFlags)
 
 		expect(store.getters.isInCall(TOKEN)).toBe(false)
 		expect(store.getters.isConnecting(TOKEN)).toBe(false)
 
-		const flags = PARTICIPANT.CALL_FLAG.WITH_VIDEO
+		const flags = PARTICIPANT.CALL_FLAG.WITH_AUDIO | PARTICIPANT.CALL_FLAG.WITH_VIDEO
 		await store.dispatch('joinCall', {
 			token: TOKEN,
 			participantIdentifier: {
@@ -402,7 +458,7 @@ describe('participantsStore', () => {
 			{
 				attendeeId: 1,
 				sessionId: 'session-id-1',
-				inCall: flags,
+				inCall: actualFlags,
 				participantType: PARTICIPANT.TYPE.USER,
 			},
 		])

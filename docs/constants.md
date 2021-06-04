@@ -50,6 +50,12 @@ title: Constants
 * `0` Read status is public
 * `1` Read status is private
 
+### Participant publishing permissions
+* `0` None
+* `1` Audio
+* `2` Video
+* `4` Screensharing
+
 ### Attendee types
 * `users` - Logged-in users
 * `guests` - Guest without a login

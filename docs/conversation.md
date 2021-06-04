@@ -37,6 +37,7 @@
         `attendeePin` | string | v3 | | Unique dial-in authentication code for this user, when the conversation has SIP enabled (see `sipEnabled` attribute)
         `actorType` | string | v3 | | Currently known `users|guests|emails|groups`
         `actorId` | string | v3 | | The unique identifier for the given actor type
+        `publishingPermissions` | int | v4 | Publishing permissions for the current participant (see [constants list](constants.md#participant-publishing-permissions))
         `participantInCall` | bool | v1 | v2 | **Removed:** use `participantFlags` instead
         `participantFlags` | int | v1 | | "In call" flags of the user's session making the request (only available with `in-call-flags` capability)
         `readOnly` | int | v1 | | Read-only state for the current user (only available with `read-only-rooms` capability)

@@ -40,7 +40,6 @@ import { getCurrentUser } from '@nextcloud/auth'
 import { loadState } from '@nextcloud/initial-state'
 import CallView from './components/CallView/CallView'
 import ChatView from './components/ChatView'
-import { PARTICIPANT } from './constants'
 import { EventBus } from './services/EventBus'
 import {
 	leaveConversationSync,
@@ -153,7 +152,6 @@ export default {
 			await this.$store.dispatch('joinCall', {
 				token: this.token,
 				participantIdentifier: this.$store.getters.getParticipantIdentifier(),
-				flags: PARTICIPANT.CALL_FLAG.IN_CALL,
 			})
 		},
 
