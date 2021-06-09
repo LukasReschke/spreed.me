@@ -92,6 +92,7 @@ class Capabilities implements IPublicCapability {
 				'temp-user-avatar-api',
 				'geo-location-sharing',
 				'signaling-v3',
+				'publishing-permissions',
 			],
 			'config' => [
 				'attachments' => [

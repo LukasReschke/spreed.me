@@ -31,10 +31,6 @@ function LocalMedia(opts) {
 	const config = this.config = {
 		detectSpeakingEvents: false,
 		audioFallback: false,
-		media: {
-			audio: true,
-			video: true,
-		},
 		harkOptions: null,
 		logger: mockconsole,
 	}
@@ -52,6 +48,8 @@ function LocalMedia(opts) {
 
 	this._audioEnabled = true
 	this._videoEnabled = true
+
+	this._localMediaActive = false
 
 	this.localStreams = []
 	this._audioMonitorStreams = []
@@ -121,9 +119,36 @@ const cloneLinkedStream = function(stream) {
 	return linkedStream
 }
 
+/**
+ * Returns whether the local media is active or not.
+ *
+ * The local media is active if it has been started and not stopped yet, even if
+ * no media was available when started. An active local media will automatically
+ * react to changes in the selected media devices.
+ *
+ * @returns {bool} true if the local media is active, false otherwise
+ */
+LocalMedia.prototype.isLocalMediaActive = function() {
+	return this._localMediaActive
+}
+
 LocalMedia.prototype.start = function(mediaConstraints, cb, context) {
 	const self = this
-	const constraints = mediaConstraints || this.config.media
+	const constraints = mediaConstraints || { audio: true, video: true }
+
+	// If local media is started with neither audio nor video the local media
+	// will not be active (it will not react to changes in the selected media
+	// devices). It is just a special case in which starting succeeds with a null
+	// stream.
+	if (!constraints.audio && !constraints.video) {
+		self.emit('localStream', constraints, null)
+
+		if (cb) {
+			return cb(null, null, constraints)
+		}
+
+		return
+	}
 
 	if (!webrtcIndex.mediaDevicesManager.isSupported()) {
 		const error = new Error('MediaStreamError')
@@ -186,8 +211,10 @@ LocalMedia.prototype.start = function(mediaConstraints, cb, context) {
 		webrtcIndex.mediaDevicesManager.on('change:audioInputId', self._handleAudioInputIdChangedBound)
 		webrtcIndex.mediaDevicesManager.on('change:videoInputId', self._handleVideoInputIdChangedBound)
 
+		self._localMediaActive = true
+
 		if (cb) {
-			return cb(null, stream)
+			return cb(null, stream, constraints)
 		}
 	}).catch(function(err) {
 		// Fallback for users without a camera or with a camera that can not be
@@ -203,6 +230,8 @@ LocalMedia.prototype.start = function(mediaConstraints, cb, context) {
 
 		webrtcIndex.mediaDevicesManager.on('change:audioInputId', self._handleAudioInputIdChangedBound)
 		webrtcIndex.mediaDevicesManager.on('change:videoInputId', self._handleVideoInputIdChangedBound)
+
+		self._localMediaActive = true
 
 		if (cb) {
 			return cb(err, null)
@@ -493,6 +522,8 @@ LocalMedia.prototype.stop = function(stream) {
 
 	webrtcIndex.mediaDevicesManager.off('change:audioInputId', this._handleAudioInputIdChangedBound)
 	webrtcIndex.mediaDevicesManager.off('change:videoInputId', this._handleVideoInputIdChangedBound)
+
+	this._localMediaActive = false
 }
 
 LocalMedia.prototype.stopStream = function(stream) {

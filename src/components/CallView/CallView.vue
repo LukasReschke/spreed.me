@@ -30,6 +30,7 @@
 				<LocalMediaControls
 					class="local-media-controls"
 					:class="{ 'local-media-controls--sidebar': isSidebar }"
+					:token="token"
 					:model="localMediaModel"
 					:show-actions="!isSidebar"
 					:local-call-participant-model="localCallParticipantModel"
@@ -90,6 +91,7 @@
 						:is-stripe="false"
 						:show-controls="false"
 						:is-big="true"
+						:token="token"
 						:local-media-model="localMediaModel"
 						:video-container-aspect-ratio="videoContainerAspectRatio"
 						:local-call-participant-model="localCallParticipantModel"
@@ -143,6 +145,7 @@
 				:show-controls="false"
 				:fit-video="true"
 				:is-stripe="true"
+				:token="token"
 				:local-media-model="localMediaModel"
 				:video-container-aspect-ratio="videoContainerAspectRatio"
 				:local-call-participant-model="localCallParticipantModel"

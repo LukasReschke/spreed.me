@@ -701,6 +701,206 @@ describe('Participant.vue', () => {
 				expect(actionTexts.exists()).toBe(false)
 			})
 		})
+		describe('grant publishing permissions', () => {
+			let setPublishingPermissionsAction
+
+			beforeEach(() => {
+				setPublishingPermissionsAction = jest.fn()
+
+				testStoreConfig.modules.participantsStore.actions.setPublishingPermissions = setPublishingPermissionsAction
+				store = new Vuex.Store(testStoreConfig)
+			})
+
+			async function testCanGrantPublishingPermissions() {
+				const wrapper = mountParticipant(participant)
+				const actionButton = findActionButton(wrapper, 'Grant publishing permissions')
+				expect(actionButton.exists()).toBe(true)
+
+				await actionButton.find('button').trigger('click')
+
+				expect(setPublishingPermissionsAction).toHaveBeenCalledWith(expect.anything(), {
+					token: 'current-token',
+					attendeeId: 'alice-attendee-id',
+					state: PARTICIPANT.PUBLISHING_PERMISSIONS.ALL,
+				})
+			}
+
+			async function testCannotGrantPublishingPermissions() {
+				const wrapper = mountParticipant(participant)
+				const actionButton = findActionButton(wrapper, 'Grant publishing permissions')
+				expect(actionButton.exists()).toBe(false)
+			}
+
+			test('allows a moderator to grant publishing permissions to an owner', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.NONE
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.OWNER
+				await testCanGrantPublishingPermissions()
+			})
+
+			test('allows a moderator to grant publishing permissions to a moderator', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.NONE
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.MODERATOR
+				await testCanGrantPublishingPermissions()
+			})
+
+			test('allows a moderator to grant publishing permissions to a user', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.NONE
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.USER
+				await testCanGrantPublishingPermissions()
+			})
+
+			test('allows a moderator to grant publishing permissions to a guest', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.NONE
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.GUEST
+				await testCanGrantPublishingPermissions()
+			})
+
+			test('allows a moderator to grant publishing permissions to a self joined-user', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.NONE
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.USER_SELF_JOINED
+				await testCanGrantPublishingPermissions()
+			})
+
+			test('allows a moderator to grant publishing permissions to a guest moderator', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.NONE
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.GUEST_MODERATOR
+				await testCanGrantPublishingPermissions()
+			})
+
+			test('allows an owner to grant publishing permissions to a user', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.NONE
+				conversation.participantType = PARTICIPANT.TYPE.OWNER
+				participant.participantType = PARTICIPANT.TYPE.USER
+				await testCanGrantPublishingPermissions()
+			})
+
+			test('allows a guest moderator to grant publishing permissions to a user', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.NONE
+				conversation.participantType = PARTICIPANT.TYPE.GUEST_MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.USER
+				await testCanGrantPublishingPermissions()
+			})
+
+			test('does not allow a non-moderator to grant publishing permissions to a user', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.NONE
+				conversation.participantType = PARTICIPANT.TYPE.USER
+				participant.participantType = PARTICIPANT.TYPE.USER
+				await testCannotGrantPublishingPermissions()
+			})
+
+			test('does not allow a moderator to grant publishing permissions to a user with permissions', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.ALL
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.USER
+				await testCannotGrantPublishingPermissions()
+			})
+		})
+		describe('revoke publishing permissions', () => {
+			let setPublishingPermissionsAction
+
+			beforeEach(() => {
+				setPublishingPermissionsAction = jest.fn()
+
+				testStoreConfig.modules.participantsStore.actions.setPublishingPermissions = setPublishingPermissionsAction
+				store = new Vuex.Store(testStoreConfig)
+			})
+
+			async function testCanRevokePublishingPermissions() {
+				const wrapper = mountParticipant(participant)
+				const actionButton = findActionButton(wrapper, 'Revoke publishing permissions')
+				expect(actionButton.exists()).toBe(true)
+
+				await actionButton.find('button').trigger('click')
+
+				expect(setPublishingPermissionsAction).toHaveBeenCalledWith(expect.anything(), {
+					token: 'current-token',
+					attendeeId: 'alice-attendee-id',
+					state: PARTICIPANT.PUBLISHING_PERMISSIONS.NONE,
+				})
+			}
+
+			async function testCannotRevokePublishingPermissions() {
+				const wrapper = mountParticipant(participant)
+				const actionButton = findActionButton(wrapper, 'Revoke publishing permissions')
+				expect(actionButton.exists()).toBe(false)
+			}
+
+			test('allows a moderator to revoke publishing permissions to an owner', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.ALL
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.OWNER
+				await testCanRevokePublishingPermissions()
+			})
+
+			test('allows a moderator to revoke publishing permissions to a moderator', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.ALL
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.MODERATOR
+				await testCanRevokePublishingPermissions()
+			})
+
+			test('allows a moderator to revoke publishing permissions to a user', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.ALL
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.USER
+				await testCanRevokePublishingPermissions()
+			})
+
+			test('allows a moderator to revoke publishing permissions to a guest', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.ALL
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.GUEST
+				await testCanRevokePublishingPermissions()
+			})
+
+			test('allows a moderator to revoke publishing permissions to a self joined-user', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.ALL
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.USER_SELF_JOINED
+				await testCanRevokePublishingPermissions()
+			})
+
+			test('allows a moderator to revoke publishing permissions to a guest moderator', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.ALL
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.GUEST_MODERATOR
+				await testCanRevokePublishingPermissions()
+			})
+
+			test('allows an owner to revoke publishing permissions to a user', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.ALL
+				conversation.participantType = PARTICIPANT.TYPE.OWNER
+				participant.participantType = PARTICIPANT.TYPE.USER
+				await testCanRevokePublishingPermissions()
+			})
+
+			test('allows a guest moderator to revoke publishing permissions to a user', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.ALL
+				conversation.participantType = PARTICIPANT.TYPE.GUEST_MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.USER
+				await testCanRevokePublishingPermissions()
+			})
+
+			test('does not allow a non-moderator to revoke publishing permissions to a user', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.ALL
+				conversation.participantType = PARTICIPANT.TYPE.USER
+				participant.participantType = PARTICIPANT.TYPE.USER
+				await testCannotRevokePublishingPermissions()
+			})
+
+			test('does not allow a moderator to revoke publishing permissions to a user without permissions', async() => {
+				participant.publishingPermissions = PARTICIPANT.PUBLISHING_PERMISSIONS.NONE
+				conversation.participantType = PARTICIPANT.TYPE.MODERATOR
+				participant.participantType = PARTICIPANT.TYPE.USER
+				await testCannotRevokePublishingPermissions()
+			})
+		})
 	})
 
 	describe('as search result', () => {

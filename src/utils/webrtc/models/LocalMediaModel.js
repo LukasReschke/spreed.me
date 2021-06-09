@@ -206,7 +206,7 @@ LocalMediaModel.prototype = {
 	_setInitialMediaState: function(configuration) {
 		if (configuration.audio !== false) {
 			this.set('audioAvailable', true)
-			if (!localStorage.getItem('audioDisabled_' + this.get('token')) || this.get('audioEnabled')) {
+			if (this.get('audioEnabled')) {
 				this.enableAudio()
 			} else {
 				this.disableAudio()
@@ -218,7 +218,7 @@ LocalMediaModel.prototype = {
 
 		if (configuration.video !== false) {
 			this.set('videoAvailable', true)
-			if (!localStorage.getItem('videoDisabled_' + this.get('token')) || this.get('videoEnabled')) {
+			if (this.get('videoEnabled')) {
 				this.enableVideo()
 			} else {
 				this.disableVideo()
@@ -274,6 +274,11 @@ LocalMediaModel.prototype = {
 		}
 
 		this.set('localStream', null)
+
+		this.set('audioEnabled', false)
+		this.set('audioAvailable', false)
+		this.set('videoEnabled', false)
+		this.set('videoAvailable', false)
 	},
 
 	_handleAudioOn: function() {

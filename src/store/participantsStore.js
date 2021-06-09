@@ -23,6 +23,7 @@ import Vue from 'vue'
 import {
 	promoteToModerator,
 	demoteFromModerator,
+	setPublishingPermissions,
 	removeAttendeeFromConversation,
 	resendInvitations,
 	joinConversation,
@@ -244,6 +245,22 @@ const actions = {
 		}
 		commit('updateParticipant', { token, index, updatedData })
 	},
+	async setPublishingPermissions({ commit, getters }, { token, attendeeId, state }) {
+		const index = getters.getParticipantIndex(token, { attendeeId })
+		if (index === -1) {
+			return
+		}
+
+		await setPublishingPermissions(token, {
+			attendeeId,
+			state,
+		})
+
+		const updatedData = {
+			publishingPermissions: state,
+		}
+		commit('updateParticipant', { token, index, updatedData })
+	},
 	async removeParticipant({ commit, getters }, { token, attendeeId }) {
 		const index = getters.getParticipantIndex(token, { attendeeId })
 		if (index === -1) {
@@ -311,10 +328,10 @@ const actions = {
 			flags,
 		})
 
-		await joinCall(token, flags)
+		const actualFlags = await joinCall(token, flags)
 
 		const updatedData = {
-			inCall: flags,
+			inCall: actualFlags,
 		}
 		commit('updateParticipant', { token, index, updatedData })
 

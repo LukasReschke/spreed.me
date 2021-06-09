@@ -86,6 +86,13 @@ export const PARTICIPANT = {
 		USER_SELF_JOINED: 5,
 		GUEST_MODERATOR: 6,
 	},
+	PUBLISHING_PERMISSIONS: {
+		NONE: 0,
+		AUDIO: 1,
+		VIDEO: 2,
+		SCREENSHARING: 4,
+		ALL: 7,
+	},
 }
 export const WEBINAR = {
 	LOBBY: {

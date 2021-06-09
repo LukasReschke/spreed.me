@@ -20,10 +20,6 @@ function SimpleWebRTC(opts) {
 		autoRemoveVideos: true,
 		adjustPeerVolume: false,
 		peerVolumeWhenSpeaking: 0.25,
-		media: {
-			video: true,
-			audio: true,
-		},
 		receiveMedia: {
 			offerToReceiveAudio: 1,
 			offerToReceiveVideo: 1,
@@ -329,9 +325,9 @@ SimpleWebRTC.prototype.setVolumeForAll = function(volume) {
 	})
 }
 
-SimpleWebRTC.prototype.joinCall = function(name) {
+SimpleWebRTC.prototype.joinCall = function(name, mediaConstraints) {
 	if (this.config.autoRequestMedia) {
-		this.startLocalVideo()
+		this.startLocalVideo(mediaConstraints)
 	}
 	this.roomName = name
 	this.emit('joinedRoom', name)
@@ -345,17 +341,13 @@ SimpleWebRTC.prototype.getEl = function(idOrEl) {
 	}
 }
 
-SimpleWebRTC.prototype.startLocalVideo = function() {
+SimpleWebRTC.prototype.startLocalVideo = function(mediaConstraints) {
 	const self = this
-	const constraints = {
-		audio: true,
-		video: true,
-	}
-	this.webrtc.start(constraints, function(err, stream) {
+	this.webrtc.start(mediaConstraints, function(err, stream, actualConstraints) {
 		if (err) {
 			self.emit('localMediaError', err)
 		} else {
-			self.emit('localMediaStarted', constraints)
+			self.emit('localMediaStarted', actualConstraints)
 
 			const localVideoContainer = self.getLocalVideoContainer()
 			if (localVideoContainer) {

@@ -89,6 +89,7 @@ class CapabilitiesTest extends TestCase {
 			'temp-user-avatar-api',
 			'geo-location-sharing',
 			'signaling-v3',
+			'publishing-permissions',
 		];
 	}
 

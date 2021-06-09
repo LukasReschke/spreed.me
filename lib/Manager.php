@@ -193,7 +193,8 @@ class Manager {
 			$lastMessage,
 			$lobbyTimer,
 			(string) $row['object_type'],
-			(string) $row['object_id']
+			(string) $row['object_id'],
+			(int) $row['publishing_allowed']
 		);
 	}
 

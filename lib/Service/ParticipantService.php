@@ -125,6 +125,25 @@ class ParticipantService {
 		$this->dispatcher->dispatch(Room::EVENT_AFTER_PARTICIPANT_TYPE_SET, $event);
 	}
 
+	public function updatePublishingPermissions(Room $room, Participant $participant, int $newState): void {
+		$attendee = $participant->getAttendee();
+
+		if ($attendee->getActorType() === Attendee::ACTOR_GROUPS || $attendee->getActorType() === Attendee::ACTOR_CIRCLES) {
+			// Can not set publishing permissions for those actor types
+			return;
+		}
+
+		$oldState = $attendee->getPublishingPermissions();
+
+		$event = new ModifyParticipantEvent($room, $participant, 'publishingPermissions', $newState, $oldState);
+		$this->dispatcher->dispatch(Room::EVENT_BEFORE_PARTICIPANT_PUBLISHING_PERMISSIONS_SET, $event);
+
+		$attendee->setPublishingPermissions($newState);
+		$this->attendeeMapper->update($attendee);
+
+		$this->dispatcher->dispatch(Room::EVENT_AFTER_PARTICIPANT_PUBLISHING_PERMISSIONS_SET, $event);
+	}
+
 	public function updateLastReadMessage(Participant $participant, int $lastReadMessage): void {
 		$attendee = $participant->getAttendee();
 		$attendee->setLastReadMessage($lastReadMessage);
@@ -655,6 +674,14 @@ class ParticipantService {
 			return;
 		}
 
+		$publishingPermissions = $participant->getAttendee()->getPublishingPermissions();
+		if (!($publishingPermissions & Attendee::PUBLISHING_PERMISSIONS_AUDIO)) {
+			$flags &= ~Participant::FLAG_WITH_AUDIO;
+		}
+		if (!($publishingPermissions & Attendee::PUBLISHING_PERMISSIONS_VIDEO)) {
+			$flags &= ~Participant::FLAG_WITH_VIDEO;
+		}
+
 		$event = new ModifyParticipantEvent($room, $participant, 'inCall', $flags, $session->getInCall());
 		if ($flags !== Participant::FLAG_DISCONNECTED) {
 			$this->dispatcher->dispatch(Room::EVENT_BEFORE_SESSION_JOIN_CALL, $event);
@@ -690,6 +717,14 @@ class ParticipantService {
 
 		if (!($flags & Participant::FLAG_IN_CALL)) {
 			throw new \InvalidArgumentException('Invalid flags');
+		}
+
+		$publishingPermissions = $participant->getAttendee()->getPublishingPermissions();
+		if (!($publishingPermissions & Attendee::PUBLISHING_PERMISSIONS_AUDIO)) {
+			$flags &= ~Participant::FLAG_WITH_AUDIO;
+		}
+		if (!($publishingPermissions & Attendee::PUBLISHING_PERMISSIONS_VIDEO)) {
+			$flags &= ~Participant::FLAG_WITH_VIDEO;
 		}
 
 		$event = new ModifyParticipantEvent($room, $participant, 'inCall', $flags, $session->getInCall());

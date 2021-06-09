@@ -525,10 +525,6 @@ export default function initWebRtc(signaling, _callParticipantCollection, _local
 		remoteVideosEl: '',
 		autoRequestMedia: true,
 		debug: false,
-		media: {
-			audio: true,
-			video: true,
-		},
 		autoAdjustMic: false,
 		audioFallback: true,
 		detectSpeakingEvents: true,
@@ -552,10 +548,17 @@ export default function initWebRtc(signaling, _callParticipantCollection, _local
 		webrtc.leaveCall()
 	})
 
-	webrtc.startMedia = function(token) {
+	webrtc.startMedia = function(token, flags) {
 		startedWithMedia = undefined
 
-		webrtc.joinCall(token)
+		// If no flags are provided try to enable both audio and video.
+		// Otherwise, try to enable only that allowed by the flags.
+		const mediaConstraints = {
+			audio: !flags || !!(flags & PARTICIPANT.CALL_FLAG.WITH_AUDIO),
+			video: !flags || !!(flags & PARTICIPANT.CALL_FLAG.WITH_VIDEO),
+		}
+
+		webrtc.joinCall(token, mediaConstraints)
 	}
 
 	const sendDataChannelToAll = function(channel, message, payload) {
@@ -744,6 +747,91 @@ export default function initWebRtc(signaling, _callParticipantCollection, _local
 			}
 		})
 	}
+
+	const reconnectOnPublishingPermissionsChange = (users) => {
+		const currentParticipant = users.find(user => {
+			const sessionId = user.sessionId || user.sessionid
+			return sessionId === signaling.getSessionId()
+		})
+
+		if (!currentParticipant) {
+			return
+		}
+
+		if (!currentParticipant.inCall) {
+			return
+		}
+
+		if (currentParticipant.publishingPermissions === undefined) {
+			return
+		}
+
+		if (currentParticipant.publishingPermissions === PARTICIPANT.PUBLISHING_PERMISSIONS.ALL && webrtc.webrtc.isLocalMediaActive()) {
+			return
+		}
+
+		if (currentParticipant.publishingPermissions === PARTICIPANT.PUBLISHING_PERMISSIONS.NONE && !webrtc.webrtc.isLocalMediaActive()) {
+			return
+		}
+
+		if (currentParticipant.publishingPermissions === PARTICIPANT.PUBLISHING_PERMISSIONS.NONE) {
+			startedWithMedia = undefined
+
+			webrtc.stopLocalVideo()
+
+			// If the MCU is used and there is no sending peer there is no need
+			// to force a reconnection, as there will be no connection that
+			// needs to be stopped.
+			if (!signaling.hasFeature('mcu') || ownPeer) {
+				forceReconnect(signaling, PARTICIPANT.CALL_FLAG.IN_CALL)
+			}
+
+			return
+		}
+
+		const forceReconnectOnceLocalMediaStarted = (constraints) => {
+			webrtc.off('localMediaStarted', forceReconnectOnceLocalMediaStarted)
+			webrtc.off('localMediaError', forceReconnectOnceLocalMediaError)
+
+			startedWithMedia = true
+
+			let flags = PARTICIPANT.CALL_FLAG.IN_CALL
+			if (constraints) {
+				if (constraints.audio) {
+					flags |= PARTICIPANT.CALL_FLAG.WITH_AUDIO
+				}
+				if (constraints.video && signaling.getSendVideoIfAvailable()) {
+					flags |= PARTICIPANT.CALL_FLAG.WITH_VIDEO
+				}
+			}
+
+			forceReconnect(signaling, flags)
+		}
+		const forceReconnectOnceLocalMediaError = () => {
+			webrtc.off('localMediaStarted', forceReconnectOnceLocalMediaStarted)
+			webrtc.off('localMediaError', forceReconnectOnceLocalMediaError)
+
+			startedWithMedia = false
+
+			// If the media fails to start there will be no media, so no need to
+			// reconnect. A reconnection will happen once the user selects a
+			// different device.
+		}
+
+		webrtc.on('localMediaStarted', forceReconnectOnceLocalMediaStarted)
+		webrtc.on('localMediaError', forceReconnectOnceLocalMediaError)
+
+		startedWithMedia = undefined
+
+		webrtc.startLocalVideo()
+	}
+
+	signaling.on('usersInRoom', function(users) {
+		reconnectOnPublishingPermissionsChange(users)
+	})
+	signaling.on('usersChanged', function(users) {
+		reconnectOnPublishingPermissionsChange(users)
+	})
 
 	webrtc.on('createdPeer', function(peer) {
 		console.debug('Peer created', peer)

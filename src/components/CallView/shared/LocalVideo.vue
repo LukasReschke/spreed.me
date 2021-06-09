@@ -53,6 +53,7 @@
 			<LocalMediaControls
 				v-if="showControls"
 				class="local-media-controls"
+				:token="token"
 				:model="localMediaModel"
 				:local-call-participant-model="localCallParticipantModel"
 				:screen-sharing-button-hidden="isSidebar"
@@ -97,6 +98,10 @@ export default {
 	mixins: [video],
 
 	props: {
+		token: {
+			type: String,
+			required: true,
+		},
 		localMediaModel: {
 			type: Object,
 			required: true,

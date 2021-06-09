@@ -309,6 +309,15 @@ return [
 			],
 		],
 		[
+			'name' => 'Room#setPublishingAllowed',
+			'url' => '/api/{apiVersion}/room/{token}/publishing-allowed',
+			'verb' => 'PUT',
+			'requirements' => [
+				'apiVersion' => 'v(4)',
+				'token' => '^[a-z0-9]{4,30}$',
+			],
+		],
+		[
 			'name' => 'Room#getParticipants',
 			'url' => '/api/{apiVersion}/room/{token}/participants',
 			'verb' => 'GET',
@@ -339,6 +348,15 @@ return [
 			'name' => 'Room#removeAttendeeFromRoom',
 			'url' => '/api/{apiVersion}/room/{token}/attendees',
 			'verb' => 'DELETE',
+			'requirements' => [
+				'apiVersion' => 'v(4)',
+				'token' => '^[a-z0-9]{4,30}$',
+			],
+		],
+		[
+			'name' => 'Room#setAttendeePublishingPermissions',
+			'url' => '/api/{apiVersion}/room/{token}/attendees/publishing-permissions',
+			'verb' => 'PUT',
 			'requirements' => [
 				'apiVersion' => 'v(4)',
 				'token' => '^[a-z0-9]{4,30}$',

@@ -49,6 +49,7 @@ class SelectHelper {
 			->addSelect($alias . 'object_type')
 			->addSelect($alias . 'object_id')
 			->addSelect($alias . 'listable')
+			->addSelect($alias . 'publishing_allowed')
 			->selectAlias($alias . 'id', 'r_id');
 	}
 
@@ -69,6 +70,7 @@ class SelectHelper {
 			->addSelect($alias . 'last_read_message')
 			->addSelect($alias . 'last_mention_message')
 			->addSelect($alias . 'read_privacy')
+			->addSelect($alias . 'publishing_permissions')
 			->selectAlias($alias . 'id', 'a_id');
 	}
 

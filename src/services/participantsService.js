@@ -130,6 +130,11 @@ const demoteFromModerator = async(token, options) => {
 	return response
 }
 
+const setPublishingPermissions = async(token, options) => {
+	const response = await axios.put(generateOcsUrl('apps/spreed/api/v4/room/{token}/attendees/publishing-permissions', { token }), options)
+	return response
+}
+
 const fetchParticipants = async(token, options) => {
 	options = options || {}
 	options.params = options.params || {}
@@ -168,6 +173,7 @@ export {
 	removeAttendeeFromConversation,
 	promoteToModerator,
 	demoteFromModerator,
+	setPublishingPermissions,
 	fetchParticipants,
 	setGuestUserName,
 	resendInvitations,

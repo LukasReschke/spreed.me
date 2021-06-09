@@ -78,7 +78,8 @@ class RoomTest extends TestCase {
 			null,
 			null,
 			'',
-			''
+			'',
+			ROOM::PUBLISHING_ALLOWED_EVERYONE
 		);
 		$verificationResult = $room->verifyPassword('1234');
 		$this->assertSame($verificationResult, ['result' => true, 'url' => '']);

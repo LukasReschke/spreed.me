@@ -34,6 +34,7 @@
         `participantType` | int | v1 | | Permissions level of the participant (see [constants list](constants.md#participant-types))
         `lastPing` | int | v1 | | Timestamp of the last ping of the user (should be used for sorting)
         `inCall` | int | v1 | | Call flags the user joined with (see [constants list](constants.md#participant-in-call-flag))
+        `publishingPermissions` | int | v4 | Publishing permissions for the participant (see [constants list](constants.md#attendee-publishing-permissions))
         `sessionId` | string | v1 | v4 | `'0'` if not connected, otherwise a 512 character long string
         `sessionIds` | array | v4 | | array of session ids, each are 512 character long strings, or empty if no session
         `status` | string | v2 | | Optional: Only available with `includeStatus=true`, for users with a set status and when there are less than 100 participants in the conversation
@@ -189,6 +190,25 @@
         + `403 Forbidden` When the current participant tries to demote themselves
         + `404 Not Found` When the conversation could not be found for the participant
         + `404 Not Found` When the participant to demote could not be found
+
+## Set publishing permissions for an attendee
+
+* Method: `PUT`
+* Endpoint: `/room/{token}/attendees/publishing-permissions`
+* Data:
+
+    field | type | Description
+    ---|---|---
+    `attendeeId` | int | Attendee id can be used for guests and users
+    `state` | int | New state for the attendee, see [constants list](constants.md#attendee-publishing-permissions)
+
+* Response:
+    - Status code:
+        + `200 OK`
+        + `400 Bad Request` When the conversation type does not support setting publishing permissions (only group and public conversations)
+        + `403 Forbidden` When the current user is not a moderator, owner or guest moderator
+        + `404 Not Found` When the conversation could not be found for the participant
+        + `404 Not Found` When the attendee to set publishing permissions could not be found
 
 ## Get a participant by their pin
 

@@ -23,6 +23,10 @@ title: Constants
 * `0` No lobby
 * `1` Lobby for non moderators
 
+### Publishing allowed
+* `0` Everyone
+* `1` Moderators
+
 ## Participants
 
 ### Participant types
@@ -56,6 +60,12 @@ title: Constants
 * `circles` - [Circle from the Circles app](https://github.com/nextcloud/circles)
 * `guests` - Guest without a login
 * `emails` - A guest invited by email address
+
+### Attendee publishing permissions
+* `0` None
+* `1` Audio
+* `2` Video
+* `4` Screensharing
 
 ### Actor types of chat messages
 * `users` - Logged-in users

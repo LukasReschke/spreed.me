@@ -37,6 +37,7 @@
         `attendeePin` | string | v3 | | Unique dial-in authentication code for this user, when the conversation has SIP enabled (see `sipEnabled` attribute)
         `actorType` | string | v3 | | Currently known `users|guests|emails|groups|circles`
         `actorId` | string | v3 | | The unique identifier for the given actor type
+        `publishingPermissions` | int | v4 | Publishing permissions for the current participant (see [constants list](constants.md#attendee-publishing-permissions))
         `participantInCall` | bool | v1 | v2 | **Removed:** use `participantFlags` instead
         `participantFlags` | int | v1 | | "In call" flags of the user's session making the request (only available with `in-call-flags` capability)
         `readOnly` | int | v1 | | Read-only state for the current user (only available with `read-only-rooms` capability)
@@ -48,6 +49,7 @@
         `hasPassword` | bool | v1 | | Flag if the conversation has a password
         `hasCall` | bool | v1 | | Flag if the conversation has an active call
         `callFlag` | int | v3 | | Combined flag of all participants in the current call (see [constants list](constants.md#participant-in-call-flag), only available with `conversation-call-flags` capability)
+        `publishingAllowed` | int | v4 | Flag about which kind of participants are allowed to publish in a call (see [constants list](constants.md#publishing-allowed))
         `canStartCall` | bool | v1 | | Flag if the user can start a new call in this conversation (joining is always possible) (only available with `start-call-flag` capability)
         `canDeleteConversation` | bool | v2 | | Flag if the user can delete the conversation for everyone (not possible without moderator permissions or in one-to-one conversations)
         `canLeaveConversation` | bool | v2 | | Flag if the user can leave the conversation (not possible for the last user with moderator permissions)
@@ -235,6 +237,23 @@
         + `200 OK`
         + `403 Forbidden` When the current user is not a moderator or owner
         + `403 Forbidden` When the conversation is not a public conversation
+        + `404 Not Found` When the conversation could not be found for the participant
+
+## Set publishing allowed for a conversation
+
+* Method: `PUT`
+* Endpoint: `/room/{token}/publishing-allowed`
+* Data:
+
+    field | type | Description
+    ---|---|---
+    `state` | int | New state for the conversation, see [constants list](constants.md#publishing-allowed)
+
+* Response:
+    - Status code:
+        + `200 OK`
+        + `400 Bad Request` When the conversation type does not support setting publishing allowed (only group and public conversations without an on-going call)
+        + `403 Forbidden` When the current user is not a moderator/owner
         + `404 Not Found` When the conversation could not be found for the participant
 
 ## Add conversation to favorites

@@ -49,6 +49,8 @@ use OCP\AppFramework\Db\Entity;
  * @method int getLastMentionMessage()
  * @method void setReadPrivacy(int $readPrivacy)
  * @method int getReadPrivacy()
+ * @method void setPublishingPermissions(int $publishingPermissions)
+ * @method int getPublishingPermissions()
  */
 class Attendee extends Entity {
 	public const ACTOR_USERS = 'users';
@@ -56,6 +58,12 @@ class Attendee extends Entity {
 	public const ACTOR_GUESTS = 'guests';
 	public const ACTOR_EMAILS = 'emails';
 	public const ACTOR_CIRCLES = 'circles';
+
+	public const PUBLISHING_PERMISSIONS_NONE = 0;
+	public const PUBLISHING_PERMISSIONS_AUDIO = 1;
+	public const PUBLISHING_PERMISSIONS_VIDEO = 2;
+	public const PUBLISHING_PERMISSIONS_SCREENSHARING = 4;
+	public const PUBLISHING_PERMISSIONS_ALL = 7;
 
 	/** @var int */
 	protected $roomId;
@@ -93,6 +101,9 @@ class Attendee extends Entity {
 	/** @var int */
 	protected $readPrivacy;
 
+	/** @var int */
+	protected $publishingPermissions;
+
 	public function __construct() {
 		$this->addType('roomId', 'int');
 		$this->addType('actorType', 'string');
@@ -106,6 +117,7 @@ class Attendee extends Entity {
 		$this->addType('lastReadMessage', 'int');
 		$this->addType('lastMentionMessage', 'int');
 		$this->addType('readPrivacy', 'int');
+		$this->addType('publishingPermissions', 'int');
 	}
 
 	public function getDisplayName(): string {
@@ -130,6 +142,7 @@ class Attendee extends Entity {
 			'last_read_message' => $this->getLastReadMessage(),
 			'last_mention_message' => $this->getLastMentionMessage(),
 			'read_privacy' => $this->getReadPrivacy(),
+			'publishing_permissions' => $this->getPublishingPermissions(),
 		];
 	}
 }

@@ -372,12 +372,14 @@ class RoomController extends AEnvironmentAwareController {
 			'actorType' => '',
 			'actorId' => '',
 			'attendeeId' => 0,
+			'publishingPermissions' => Attendee::PUBLISHING_PERMISSIONS_NONE,
 			'canEnableSIP' => false,
 			'attendeePin' => '',
 			'description' => '',
 			'lastCommonReadMessage' => 0,
 			'listable' => Room::LISTABLE_NONE,
 			'callFlag' => Participant::FLAG_DISCONNECTED,
+			'publishingAllowed' => Room::PUBLISHING_ALLOWED_EVERYONE,
 		];
 
 		$lastActivity = $room->getLastActivity();
@@ -410,6 +412,7 @@ class RoomController extends AEnvironmentAwareController {
 				'lobbyTimer' => $lobbyTimer,
 				'sipEnabled' => $room->getSIPEnabled(),
 				'listable' => $room->getListable(),
+				'publishingAllowed' => $room->getPublishingAllowed(),
 			]);
 		}
 
@@ -437,8 +440,10 @@ class RoomController extends AEnvironmentAwareController {
 			'actorType' => $attendee->getActorType(),
 			'actorId' => $attendee->getActorId(),
 			'attendeeId' => $attendee->getId(),
+			'publishingPermissions' => $attendee->getPublishingPermissions(),
 			'description' => $room->getDescription(),
 			'listable' => $room->getListable(),
+			'publishingAllowed' => $room->getPublishingAllowed(),
 		]);
 
 		if ($currentParticipant->getAttendee()->getReadPrivacy() === Participant::PRIVACY_PUBLIC) {
@@ -906,6 +911,7 @@ class RoomController extends AEnvironmentAwareController {
 				'actorId' => $participant->getAttendee()->getActorId(),
 				'actorType' => $participant->getAttendee()->getActorType(),
 				'displayName' => $participant->getAttendee()->getActorId(),
+				'publishingPermissions' => $participant->getAttendee()->getPublishingPermissions(),
 				'attendeePin' => '',
 			];
 			if ($this->talkConfig->isSIPConfigured()
@@ -1223,6 +1229,21 @@ class RoomController extends AEnvironmentAwareController {
 
 	/**
 	 * @PublicPage
+	 * @RequireLoggedInModeratorParticipant
+	 *
+	 * @param string $state
+	 * @return DataResponse
+	 */
+	public function setPublishingAllowed(int $state): DataResponse {
+		if (!$this->room->setPublishingAllowed($state)) {
+			return new DataResponse([], Http::STATUS_BAD_REQUEST);
+		}
+
+		return new DataResponse();
+	}
+
+	/**
+	 * @PublicPage
 	 * @UseSession
 	 *
 	 * @param string $token
@@ -1424,6 +1445,30 @@ class RoomController extends AEnvironmentAwareController {
 		}
 
 		$this->participantService->updateParticipantType($this->room, $targetParticipant, $newType);
+
+		return new DataResponse();
+	}
+
+	/**
+	 * @PublicPage
+	 * @RequireModeratorParticipant
+	 *
+	 * @param int $attendeeId
+	 * @param int $state
+	 * @return DataResponse
+	 */
+	public function setAttendeePublishingPermissions(int $attendeeId, int $state): DataResponse {
+		try {
+			$targetParticipant = $this->room->getParticipantByAttendeeId($attendeeId);
+		} catch (ParticipantNotFoundException $e) {
+			return new DataResponse([], Http::STATUS_NOT_FOUND);
+		}
+
+		if ($this->room->getType() === Room::ONE_TO_ONE_CALL) {
+			return new DataResponse([], Http::STATUS_BAD_REQUEST);
+		}
+
+		$this->participantService->updatePublishingPermissions($this->room, $targetParticipant, $state);
 
 		return new DataResponse();
 	}

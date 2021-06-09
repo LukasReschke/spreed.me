@@ -76,3 +76,4 @@ title: Capabilities
 * `conversation-v4` - Whether conversations API v4 is available. This also means that v1, v2 and v3 are **not** available anymore. The changes on API v4 allow a user to have multiple sessions in the same conversation on different devices which is incompatible with the data structure that was used by the previous APIs.
 * `signaling-v3` - Whether signaling API v3 is available. This also means that v1 and v2 are **not** available anymore. The TURN and STUN server data is now returning all defined servers instead of a random one. Multiple entries for the same server are combined and using the urls array correctly now.
 * `geo-location-sharing` - Whether the `geo-location` rich object is defined and can be shared to the rich-object sharing endpoint.
+* `publishing-permissions` - Whether the publishing permissions can be set for the attendees.

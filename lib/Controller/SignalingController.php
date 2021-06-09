@@ -399,6 +399,7 @@ class SignalingController extends OCSController {
 				'lastPing' => $session->getLastPing(),
 				'sessionId' => $session->getSessionId(),
 				'inCall' => $session->getInCall(),
+				'publishingPermissions' => $participant->getAttendee()->getPublishingPermissions(),
 			];
 		}
 
@@ -645,9 +646,17 @@ class SignalingController extends OCSController {
 			}
 		}
 
-		$permissions = ['publish-media', 'publish-screen'];
-		if ($participant instanceof Participant && $participant->hasModeratorPermissions(false)) {
-			$permissions[] = 'control';
+		$permissions = [];
+		if ($participant instanceof Participant) {
+			if ($participant->getAttendee()->getPublishingPermissions() & (Attendee::PUBLISHING_PERMISSIONS_AUDIO | Attendee::PUBLISHING_PERMISSIONS_VIDEO)) {
+				$permissions[] = 'publish-media';
+			}
+			if ($participant->getAttendee()->getPublishingPermissions() & Attendee::PUBLISHING_PERMISSIONS_SCREENSHARING) {
+				$permissions[] = 'publish-screen';
+			}
+			if ($participant->hasModeratorPermissions(false)) {
+				$permissions[] = 'control';
+			}
 		}
 
 		$event = new SignalingEvent($room, $participant, $action);
