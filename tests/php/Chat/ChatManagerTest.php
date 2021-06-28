@@ -265,10 +265,6 @@ class ChatManagerTest extends TestCase {
 			->with('chat', 1234, $offset, 'asc', $limit)
 			->willReturn($expected);
 
-		$this->notifier->expects($this->once())
-			->method('markMentionNotificationsRead')
-			->with($chat, 'userId');
-
 		/** @var IUser|\PHPUnit_Framework_MockObject_MockObject $user */
 		$user = $this->createMock(IUser::class);
 		$user->expects($this->any())
@@ -302,10 +298,6 @@ class ChatManagerTest extends TestCase {
 				[],
 				$expected
 			);
-
-		$this->notifier->expects($this->once())
-			->method('markMentionNotificationsRead')
-			->with($chat, 'userId');
 
 		/** @var IUser|\PHPUnit_Framework_MockObject_MockObject $user */
 		$user = $this->createMock(IUser::class);

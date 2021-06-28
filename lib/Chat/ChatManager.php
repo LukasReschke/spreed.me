@@ -365,10 +365,6 @@ class ChatManager {
 	 *         timeout expired.
 	 */
 	public function waitForNewMessages(Room $chat, int $offset, int $limit, int $timeout, ?IUser $user, bool $includeLastKnown): array {
-		if ($user instanceof IUser) {
-			$this->notifier->markMentionNotificationsRead($chat, $user->getUID());
-		}
-
 		if ($this->cache instanceof NullCache
 			|| $this->cache instanceof ArrayCache) {
 			return $this->waitForNewMessagesWithDatabase($chat, $offset, $limit, $timeout, $includeLastKnown);

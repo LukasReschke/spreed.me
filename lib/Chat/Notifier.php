@@ -219,31 +219,6 @@ class Notifier {
 	}
 
 	/**
-	 * Removes all the pending mention notifications for the room
-	 *
-	 * @param Room $chat
-	 * @param string $userId
-	 */
-	public function markMentionNotificationsRead(Room $chat, ?string $userId): void {
-		if ($userId === null || $userId === '') {
-			return;
-		}
-
-		$shouldFlush = $this->notificationManager->defer();
-		$notification = $this->notificationManager->createNotification();
-
-		$notification
-			->setApp('spreed')
-			->setObject('chat', $chat->getToken())
-			->setUser($userId);
-
-		$this->notificationManager->markProcessed($notification);
-		if ($shouldFlush) {
-			$this->notificationManager->flush();
-		}
-	}
-
-	/**
 	 * Returns the IDs of the users mentioned in the given comment.
 	 *
 	 * @param IComment $comment
@@ -359,7 +334,6 @@ class Notifier {
 	 * 1. The participant is not a guest
 	 * 2. The participant is not the writing user
 	 * 3. The participant was not mentioned already
-	 * 4. The participant must not be active in the room
 	 *
 	 * @param Participant $participant
 	 * @param IComment $comment
@@ -377,15 +351,6 @@ class Notifier {
 			return false;
 		}
 
-		if (\in_array($userId, $alreadyNotifiedUsers, true)) {
-			return false;
-		}
-
-		if ($participant->getSession() instanceof Session) {
-			// User is online
-			return false;
-		}
-
-		return true;
+		return !\in_array($userId, $alreadyNotifiedUsers, true);
 	}
 }

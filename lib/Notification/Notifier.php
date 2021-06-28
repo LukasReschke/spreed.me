@@ -283,6 +283,7 @@ class Notifier implements INotifier {
 			throw new \InvalidArgumentException('Unknown object type');
 		}
 
+
 		$subjectParameters = $notification->getSubjectParameters();
 
 		$richSubjectUser = null;
@@ -311,6 +312,12 @@ class Notifier implements INotifier {
 
 		$messageParameters = $notification->getMessageParameters();
 		if (!isset($messageParameters['commentId'])) {
+			throw new AlreadyProcessedException();
+		}
+
+		if (!$this->notificationManager->isPreparingPushNotification()
+			&& $participant->getAttendee()->getLastReadMessage() >= $messageParameters['commentId']) {
+			// Mark notification processed when the user read the message already
 			throw new AlreadyProcessedException();
 		}
 

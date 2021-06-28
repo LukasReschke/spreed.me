@@ -86,6 +86,7 @@ class Listener {
 			/** @var self $listener */
 			$listener = \OC::$server->query(self::class);
 			$listener->markInvitationRead($event->getRoom());
+			$listener->markChatNotificationsRead($event->getRoom());
 		};
 		$dispatcher->addListener(Room::EVENT_AFTER_ROOM_CONNECT, $listener);
 
@@ -187,6 +188,33 @@ class Listener {
 		} catch (\InvalidArgumentException $e) {
 			$this->logger->error($e->getMessage(), ['exception' => $e]);
 			return;
+		}
+	}
+
+	/**
+	 * Chat notification: "{actor} mentioned you conversation {conversation}"
+	 *
+	 * @param Room $room
+	 */
+	public function markChatNotificationsRead(Room $room): void {
+		$currentUser = $this->userSession->getUser();
+		if (!$currentUser instanceof IUser) {
+			return;
+		}
+
+		$shouldFlush = $this->notificationManager->defer();
+		$notification = $this->notificationManager->createNotification();
+		try {
+			$notification->setApp('spreed')
+				->setObject('chat', $room->getToken())
+				->setUser($currentUser->getUID());
+			$this->notificationManager->markProcessed($notification);
+		} catch (\InvalidArgumentException $e) {
+			$this->logger->error($e->getMessage(), ['exception' => $e]);
+		}
+
+		if ($shouldFlush) {
+			$this->notificationManager->flush();
 		}
 	}
 
