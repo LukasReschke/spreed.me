@@ -297,14 +297,14 @@ Signaling.Base.prototype.updateCallFlags = function(token, flags) {
 	})
 }
 
-Signaling.Base.prototype.leaveCall = function(token, keepToken) {
+Signaling.Base.prototype.leaveCall = function(token, keepToken, all) {
 	return new Promise((resolve, reject) => {
 		if (!token) {
 			reject(new Error())
 			return
 		}
 
-		axios.delete(generateOcsUrl('apps/spreed/api/v4/call/{token}', { token }))
+		axios.delete(generateOcsUrl('apps/spreed/api/v4/call/{token}?all={all}', { token, all: all ? 'true' : 'false' }))
 			.then(function() {
 				this._trigger('leaveCall', [token, keepToken])
 				this._leaveCallSuccess(token)

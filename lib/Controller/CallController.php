@@ -152,15 +152,25 @@ class CallController extends AEnvironmentAwareController {
 	 * @PublicPage
 	 * @RequireParticipant
 	 *
+	 * @param bool $all whether to also terminate the call for all participants
 	 * @return DataResponse
 	 */
-	public function leaveCall(): DataResponse {
+	public function leaveCall(bool $all): DataResponse {
 		$session = $this->participant->getSession();
 		if (!$session instanceof Session) {
 			return new DataResponse([], Http::STATUS_NOT_FOUND);
 		}
 
-		$this->participantService->changeInCall($this->room, $this->participant, Participant::FLAG_DISCONNECTED);
+		if ($all) {
+			$participants = $this->participantService->getParticipantsInCall($this->room);
+
+			// kick out all participants out of the call
+			foreach ($participants as $participant) {
+				$this->participantService->changeInCall($this->room, $participant, Participant::FLAG_DISCONNECTED);
+			}
+		} else {
+			$this->participantService->changeInCall($this->room, $this->participant, Participant::FLAG_DISCONNECTED);
+		}
 
 		return new DataResponse();
 	}

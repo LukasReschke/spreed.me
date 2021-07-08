@@ -217,9 +217,10 @@ async function signalingJoinCall(token, flags) {
  * Leave the call of the given conversation
  *
  * @param {string} token Conversation to leave the call
+ * @param {bool} all Whether to end the meeting for all
  * @returns {Promise<void>}
  */
-async function signalingLeaveCall(token) {
+async function signalingLeaveCall(token, all = false) {
 	sentVideoQualityThrottler.destroy()
 	sentVideoQualityThrottler = null
 
@@ -227,7 +228,7 @@ async function signalingLeaveCall(token) {
 	callAnalyzer = null
 
 	if (tokensInSignaling[token]) {
-		await signaling.leaveCall(token)
+		await signaling.leaveCall(token, false, all)
 	}
 }
 

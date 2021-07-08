@@ -329,7 +329,7 @@ const actions = {
 		}, 10000)
 	},
 
-	async leaveCall({ commit, getters }, { token, participantIdentifier }) {
+	async leaveCall({ commit, getters }, { token, participantIdentifier, all = false }) {
 		if (!participantIdentifier?.sessionId) {
 			console.error('Trying to leave call without sessionId')
 		}
@@ -340,7 +340,7 @@ const actions = {
 			return
 		}
 
-		await leaveCall(token)
+		await leaveCall(token, all)
 
 		const updatedData = {
 			inCall: PARTICIPANT.CALL_FLAG.DISCONNECTED,
