@@ -20,10 +20,12 @@
  *
  */
 import Vue from 'vue'
+import fromStateOr from './helper'
 
 const state = {
 	guestNames: {
 	},
+	askGuestUsername: fromStateOr('spreed', 'ask_guest_username', 0),
 }
 
 const getters = {
@@ -37,6 +39,10 @@ const getters = {
 			return state.guestNames[token][actorId]
 		}
 		return t('spreed', 'Guest')
+	},
+
+	getAskGuestUsername: (state) => () => {
+		return state.askGuestUsername
 	},
 }
 

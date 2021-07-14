@@ -72,6 +72,11 @@ trait TInitialState {
 			'sip_dialin_info',
 			$this->talkConfig->getDialInInfo()
 		);
+
+		$this->initialState->provideInitialState(
+			'ask_guest_username',
+			(int) $this->serverConfig->getAppValue('spreed', 'ask_guest_username', '0')
+		);
 	}
 
 	protected function publishInitialStateForUser(IUser $user, IRootFolder $rootFolder, IAppManager $appManager): void {

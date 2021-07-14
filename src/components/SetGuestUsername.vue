@@ -21,48 +21,79 @@
 
 <template>
 	<!-- Guest username setting form -->
-	<form
-		class="username-form"
-		@submit.prevent="handleChooseUserName">
-		<h3>
-			{{ t('spreed', 'Display name: ') }} <strong>{{ actorDisplayName ? actorDisplayName : t('spreed', 'Guest') }}</strong>
-			<button
-				class="icon-rename"
-				@click.prevent="handleEditUsername">
-				{{ t('spreed', 'Edit') }}
-			</button>
-		</h3>
-		<div
-			v-if="isEditingUsername"
-			class="username-form__wrapper">
-			<input
-				ref="usernameInput"
-				v-model="guestUserName"
-				:placeholder="t('spreed', 'Guest')"
-				class="username-form__input"
-				type="text"
-				@keydown.enter="handleChooseUserName"
-				@keydown.esc="isEditingUsername = !isEditingUsername">
-			<button
-				class="username-form__button"
-				type="submit">
-				<div class="icon-confirm" />
-			</button>
-		</div>
-	</form>
+	<div>
+		<form
+			class="username-form"
+			@submit.prevent="handleChooseUserName">
+			<h3>
+				{{ t('spreed', 'Display name: ') }} <strong>{{ actorDisplayName ? actorDisplayName : t('spreed', 'Guest') }}</strong>
+				<button
+					class="icon-rename"
+					@click.prevent="handleEditUsername">
+					{{ t('spreed', 'Edit') }}
+				</button>
+			</h3>
+			<div
+				v-if="isEditingUsername"
+				class="username-form__wrapper">
+				<input
+					ref="usernameInput"
+					v-model="guestUserName"
+					:placeholder="t('spreed', 'Guest')"
+					class="username-form__input"
+					type="text"
+					@keydown.enter="handleChooseUserName"
+					@keydown.esc="isEditingUsername = !isEditingUsername">
+				<button
+					class="username-form__button"
+					type="submit">
+					<div class="icon-confirm" />
+				</button>
+			</div>
+		</form>
+		<Modal v-if="modal" :canClose="false">
+			<form
+				class="username-form"
+				@submit.prevent="handleChooseUserName2">
+				<div
+					class="username-form__wrapper"
+					style="display: block">
+					<h3>
+						{{ t('spreed', 'Display name: ') }}
+					</h3>
+					<input
+						ref="usernameInput"
+						v-model="guestUserName"
+						:placeholder="t('spreed', 'Guest')"
+						class="username-form__input"
+						type="text"
+						@keydown.enter="handleChooseUserName2">
+					<button
+						class="username-form__button"
+						type="submit">
+						<div class="icon-confirm" />
+					</button>
+				</div>
+			</form>
+		</Modal>
+	</div>
 </template>
 
 <script>
 import { setGuestUserName } from '../services/participantsService'
+import Modal from '@nextcloud/vue/dist/Components/Modal'
 
 export default {
 	name: 'SetGuestUsername',
-
+	components: {
+		Modal,
+	},
 	data() {
 		return {
 			guestUserName: '',
 			isEditingUsername: false,
 			delayHandleUserNameFromBrowserStorage: false,
+			modal: (this.$store.getters.getAskGuestUsername() === 1) && !localStorage.getItem('nick'),
 		}
 	},
 
@@ -139,6 +170,14 @@ export default {
 					this.$refs.usernameInput.focus()
 				})
 			}
+		},
+
+		handleChooseUserName2() {
+			if ((this.guestUserName === '') || !this.guestUserName) {
+				return false
+			}
+			this.handleChooseUserName()
+			this.modal = false
 		},
 	},
 

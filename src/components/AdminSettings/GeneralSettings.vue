@@ -24,6 +24,20 @@
 	<div id="general_settings" class="videocalls section">
 		<h2>{{ t('spreed', 'General settings') }}</h2>
 
+		<p>
+			<input id="ask_guest_username"
+				v-model="askGuestUsername"
+				type="checkbox"
+				name="ask_guest_username"
+				class="checkbox"
+				:disabled="loading || loadingAskGuestUsername"
+				@change="saveAskGuestUsername">
+			<label for="ask_guest_username">{{ t('spreed', 'Ask guest for a displayname') }}</label>
+		</p>
+		<p>
+			<em>{{ t('spreed', 'If guest have no display name, nextcloud will ask it on guest joining to conversation') }}</em>
+		</p>
+
 		<h3>{{ t('spreed', 'Default notification settings') }}</h3>
 
 		<p>
@@ -83,9 +97,11 @@ export default {
 	data() {
 		return {
 			loading: true,
+			loadingAskGuestUsername: false,
 			loadingConversationsFiles: false,
 			loadingDefaultGroupNotification: false,
 
+			askGuestUsername: false,
 			defaultGroupNotificationOptions,
 			defaultGroupNotification: defaultGroupNotificationOptions[1],
 
@@ -96,6 +112,7 @@ export default {
 
 	mounted() {
 		this.loading = true
+		this.askGuestUsername = parseInt(loadState('spreed', 'ask_guest_username')) === 1
 		this.conversationsFiles = parseInt(loadState('spreed', 'conversations_files')) === 1
 		this.defaultGroupNotification = defaultGroupNotificationOptions[parseInt(loadState('spreed', 'default_group_notification')) - 1]
 		this.conversationsFilesPublicShares = parseInt(loadState('spreed', 'conversations_files_public_shares')) === 1
@@ -103,6 +120,15 @@ export default {
 	},
 
 	methods: {
+		saveAskGuestUsername() {
+			this.loadingAskGuestUsername = true
+
+			OCP.AppConfig.setValue('spreed', 'ask_guest_username', this.askGuestUsername ? '1' : '0', {
+				success: function() {
+					this.loadingAskGuestUsername = false
+				}.bind(this),
+			})
+		},
 		saveDefaultGroupNotification() {
 			this.loadingDefaultGroupNotification = true
 
