@@ -46,6 +46,7 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IRequest;
+use OCP\ISession;
 use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Share\IShare;
@@ -59,6 +60,8 @@ class Listener implements IEventListener {
 	protected $chatManager;
 	/** @var TalkSession */
 	protected $talkSession;
+	/** @var ISession */
+	protected $session;
 	/** @var IUserSession */
 	protected $userSession;
 	/** @var ITimeFactory */
@@ -67,11 +70,13 @@ class Listener implements IEventListener {
 	public function __construct(IRequest $request,
 								ChatManager $chatManager,
 								TalkSession $talkSession,
+								ISession $session,
 								IUserSession $userSession,
 								ITimeFactory $timeFactory) {
 		$this->request = $request;
 		$this->chatManager = $chatManager;
 		$this->talkSession = $talkSession;
+		$this->session = $session;
 		$this->userSession = $userSession;
 		$this->timeFactory = $timeFactory;
 	}
@@ -367,11 +372,14 @@ class Listener implements IEventListener {
 		} else {
 			$user = $this->userSession->getUser();
 			if ($user instanceof IUser) {
-				$actorType = 'users';
+				$actorType = Attendee::ACTOR_USERS;
 				$actorId = $user->getUID();
-			} elseif (\OC::$CLI) {
+			} elseif (\OC::$CLI || $this->session->exists('talk-overwrite-actor-cli')) {
 				$actorType = Attendee::ACTOR_GUESTS;
 				$actorId = 'cli';
+			} elseif ($this->session->exists('talk-overwrite-actor')) {
+				$actorType = Attendee::ACTOR_USERS;
+				$actorId = $this->session->get('talk-overwrite-actor');
 			} else {
 				$actorType = Attendee::ACTOR_GUESTS;
 				$sessionId = $this->talkSession->getSessionForRoom($room->getToken());

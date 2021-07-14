@@ -23,6 +23,9 @@ declare(strict_types=1);
 
 namespace OCA\Talk\AppInfo;
 
+use OCA\Circles\Events\AddingCircleMemberEvent;
+use OCA\Circles\Events\CircleDestroyedEvent;
+use OCA\Circles\Events\RemovingCircleMemberEvent;
 use OCA\Files_Sharing\Event\BeforeTemplateRenderedEvent;
 use OCA\Talk\Activity\Listener as ActivityListener;
 use OCA\Talk\Capabilities;
@@ -45,6 +48,8 @@ use OCA\Talk\Files\Listener as FilesListener;
 use OCA\Talk\Files\TemplateLoader as FilesTemplateLoader;
 use OCA\Talk\Flow\RegisterOperationsListener;
 use OCA\Talk\Listener\BeforeUserLoggedOutListener;
+use OCA\Talk\Listener\CircleDeletedListener;
+use OCA\Talk\Listener\CircleMembershipListener;
 use OCA\Talk\Listener\CSPListener;
 use OCA\Talk\Listener\FeaturePolicyListener;
 use OCA\Talk\Listener\GroupDeletedListener;
@@ -115,6 +120,10 @@ class Application extends App implements IBootstrap {
 		$context->registerEventListener(RegisterOperationsEvent::class, RegisterOperationsListener::class);
 		$context->registerEventListener(AttendeesAddedEvent::class, SystemMessageListener::class);
 		$context->registerEventListener(AttendeesRemovedEvent::class, SystemMessageListener::class);
+
+		$context->registerEventListener(CircleDestroyedEvent::class, CircleDeletedListener::class);
+		$context->registerEventListener(AddingCircleMemberEvent::class, CircleMembershipListener::class);
+		$context->registerEventListener(RemovingCircleMemberEvent::class, CircleMembershipListener::class);
 
 		$context->registerSearchProvider(ConversationSearch::class);
 		$context->registerSearchProvider(CurrentMessageSearch::class);

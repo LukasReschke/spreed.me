@@ -24,36 +24,15 @@ declare(strict_types=1);
 namespace OCA\Talk\Listener;
 
 use OCA\Talk\Exceptions\ParticipantNotFoundException;
-use OCA\Talk\Manager;
 use OCA\Talk\Model\Attendee;
 use OCA\Talk\Participant;
-use OCA\Talk\Room;
-use OCA\Talk\Service\ParticipantService;
 use OCP\EventDispatcher\Event;
-use OCP\EventDispatcher\IEventListener;
 use OCP\Group\Events\UserAddedEvent;
 use OCP\Group\Events\UserRemovedEvent;
 use OCP\IGroup;
-use OCP\IGroupManager;
 use OCP\IUser;
 
-class GroupMembershipListener implements IEventListener {
-
-	/** @var IGroupManager */
-	private $groupManager;
-	/** @var Manager */
-	private $manager;
-	/** @var ParticipantService */
-	private $participantService;
-
-	public function __construct(IGroupManager $groupManager,
-								Manager $manager,
-								ParticipantService $participantService) {
-		$this->groupManager = $groupManager;
-		$this->manager = $manager;
-		$this->participantService = $participantService;
-	}
-
+class GroupMembershipListener extends AMembershipListener {
 	public function handle(Event $event): void {
 		if ($event instanceof UserAddedEvent) {
 			$this->addNewMemberToRooms($event->getGroup(), $event->getUser());
@@ -88,30 +67,6 @@ class GroupMembershipListener implements IEventListener {
 			return;
 		}
 
-		$userGroupIds = $this->groupManager->getUserGroupIds($user);
-
-		$furtherMemberships = [];
-		foreach ($userGroupIds as $groupId) {
-			$groupRooms = $this->manager->getRoomsForActor(Attendee::ACTOR_GROUPS, $groupId);
-			foreach ($groupRooms as $room) {
-				$furtherMemberships[$room->getId()] = true;
-			}
-		}
-
-		$rooms = array_filter($rooms, static function (Room $room) use ($furtherMemberships) {
-			// Only delete from rooms where the user is not member via another group
-			return !isset($furtherMemberships[$room->getId()]);
-		});
-
-		foreach ($rooms as $room) {
-			try {
-				$participant = $room->getParticipant($user->getUID());
-				$participantType = $participant->getAttendee()->getParticipantType();
-				if ($participantType === Participant::USER) {
-					$this->participantService->removeUser($room, $user, Room::PARTICIPANT_REMOVED);
-				}
-			} catch (ParticipantNotFoundException $e) {
-			}
-		}
+		$this->removeFromRoomsUnlessStillLinked($rooms, $user);
 	}
 }

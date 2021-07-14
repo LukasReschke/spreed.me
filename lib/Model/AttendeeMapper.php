@@ -110,9 +110,11 @@ class AttendeeMapper extends QBMapper {
 		$query = $this->db->getQueryBuilder();
 		$query->select($query->func()->count('*', 'num_actors'))
 			->from($this->getTableName())
-			->where($query->expr()->eq('room_id', $query->createNamedParameter($roomId, IQueryBuilder::PARAM_INT)));
-
-		// TODO Should exclude groups and circles when we add them
+			->where($query->expr()->eq('room_id', $query->createNamedParameter($roomId, IQueryBuilder::PARAM_INT)))
+			->andWhere($query->expr()->notIn('actor_type', $query->createNamedParameter([
+				Attendee::ACTOR_CIRCLES,
+				Attendee::ACTOR_GROUPS,
+			], IQueryBuilder::PARAM_STR_ARRAY)));
 
 		if (!empty($participantType)) {
 			$query->andWhere($query->expr()->in('participant_type', $query->createNamedParameter($participantType, IQueryBuilder::PARAM_INT_ARRAY)));

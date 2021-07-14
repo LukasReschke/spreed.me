@@ -137,6 +137,14 @@ export default {
 		 * @returns {number}
 		 */
 		sortParticipants(participant1, participant2) {
+			const p1IsCircle = participant1.actorType === ATTENDEE.ACTOR_TYPE.CIRCLES
+			const p2IsCircle = participant2.actorType === ATTENDEE.ACTOR_TYPE.CIRCLES
+
+			if (p1IsCircle !== p2IsCircle) {
+				// Circles below participants and groups
+				return p2IsCircle ? -1 : 1
+			}
+
 			const p1IsGroup = participant1.actorType === ATTENDEE.ACTOR_TYPE.GROUPS
 			const p2IsGroup = participant2.actorType === ATTENDEE.ACTOR_TYPE.GROUPS
 

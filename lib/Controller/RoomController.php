@@ -999,6 +999,8 @@ class RoomController extends AEnvironmentAwareController {
 				$result['displayName'] = $participant->getAttendee()->getDisplayName();
 			} elseif ($participant->getAttendee()->getActorType() === Attendee::ACTOR_GROUPS) {
 				$result['displayName'] = $participant->getAttendee()->getDisplayName();
+			} elseif ($participant->getAttendee()->getActorType() === Attendee::ACTOR_CIRCLES) {
+				$result['displayName'] = $participant->getAttendee()->getDisplayName();
 			}
 
 			$results[$attendeeId] = $result;
