@@ -84,7 +84,7 @@
 		"jest-mock-axios": "^4.4.0",
 		"jest-mock-console": "^1.1.0",
 		"regenerator-runtime": "^0.13.7",
-		"terser-webpack-plugin": "^1.4.5",
+		"terser-webpack-plugin": "^5.1.4",
 		"webpack-node-externals": "^3.0.0"
 	},
 	"browserslist": [
