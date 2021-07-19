@@ -33,6 +33,8 @@
 				:main-text="getMainText(item)"
 				:sub-text="getSubText(item)"
 				:item="item"
+				:item-menu="itemMenu"
+				@markAsRead="onMarkAsRead(item)"
 				v-on="handlers">
 				<template #avatar>
 					<ConversationIcon
@@ -86,6 +88,12 @@ export default {
 			hasImportantConversations: false,
 			loading: true,
 			windowVisibility: true,
+			itemMenu: {
+				markAsRead: {
+					text: t('app', 'Mark as read'),
+					icon: 'icon-checkmark',
+				},
+			},
 		}
 	},
 
@@ -199,6 +207,11 @@ export default {
 
 		clickStartNew() {
 			window.location = generateUrl('/apps/spreed')
+		},
+
+		onMarkAsRead(item) {
+			this.$store.dispatch('clearLastReadMessage', { token: item.token, updateVisually: true })
+			this.fetchRooms()
 		},
 	},
 }
