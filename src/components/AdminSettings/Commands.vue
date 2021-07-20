@@ -73,7 +73,7 @@ export default {
 	computed: {
 		commandHint() {
 			return t('spreed', 'Commands are a new beta feature in Nextcloud Talk. They allow you to run scripts on your Nextcloud server. You can define them with our command line interface. An example of a calculator script can be found in our {linkstart}documentation{linkend}.')
-				.replace('{linkstart}', '<a  target="_blank" rel="noreferrer nofollow" class="external" href="https://nextcloud-talk.readthedocs.io/en/latest/commands.html">')
+				.replace('{linkstart}', '<a  target="_blank" rel="noreferrer nofollow" class="external" href="https://nextcloud-talk.readthedocs.io/en/latest/commands/">')
 				.replace('{linkend}', ' ↗</a>')
 		},
 	},

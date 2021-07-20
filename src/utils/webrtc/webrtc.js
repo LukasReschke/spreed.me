@@ -622,7 +622,7 @@ export default function initWebRtc(signaling, _callParticipantCollection, _local
 		if (!showedTURNWarning && !signaling.settings.turnservers.length) {
 			showError(
 				t('spreed', 'Could not establish a connection with at least one participant. A TURN server might be needed for your scenario. Please ask your administrator to set one up following {linkstart}this documentation{linkend}.')
-					.replace('{linkstart}', '<a  target="_blank" rel="noreferrer nofollow" class="external" href="https://nextcloud-talk.readthedocs.io/en/latest/TURN.html">')
+					.replace('{linkstart}', '<a  target="_blank" rel="noreferrer nofollow" class="external" href="https://nextcloud-talk.readthedocs.io/en/latest/TURN/">')
 					.replace('{linkend}', ' ↗</a>'),
 				{
 					timeout: TOAST_PERMANENT_TIMEOUT,
