@@ -260,6 +260,7 @@ class PageController extends Controller {
 		$this->eventDispatcher->dispatch('\OCP\Collaboration\Resources::loadAdditionalScripts', new GenericEvent());
 		$response = new TemplateResponse($this->appName, 'index');
 		$csp = new ContentSecurityPolicy();
+		$csp->allowEvalScript(true); // FIXME: TEMP
 		$csp->addAllowedConnectDomain('*');
 		$csp->addAllowedMediaDomain('blob:');
 		$csp->addAllowedWorkerSrcDomain('blob:');
@@ -321,6 +322,7 @@ class PageController extends Controller {
 		$response = new PublicTemplateResponse($this->appName, 'index');
 		$response->setFooterVisible(false);
 		$csp = new ContentSecurityPolicy();
+		$csp->allowEvalScript(true); // FIXME: TEMP
 		$csp->addAllowedConnectDomain('*');
 		$csp->addAllowedMediaDomain('blob:');
 		$csp->addAllowedWorkerSrcDomain('blob:');
