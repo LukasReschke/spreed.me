@@ -159,6 +159,23 @@
 						title="" />
 					{{ raiseHandButtonLabel }}
 				</ActionButton>
+				<ActionButton
+					:close-after-click="true"
+					@click="toggleVideoEffects">
+					<BlurOff
+						v-if="isVideoEffectsEnabled"
+						slot="icon"
+						:size="16"
+						decorative
+						title="" />
+					<Blur
+						v-else
+						slot="icon"
+						:size="16"
+						decorative
+						title="" />
+					{{ toggleVideoEffectsButtonLabel }}
+				</ActionButton>
 				<ActionSeparator />
 				<ActionButton
 					icon="icon-settings"
@@ -218,6 +235,8 @@ import Monitor from 'vue-material-design-icons/Monitor'
 import PresentToAll from '../../missingMaterialDesignIcons/PresentToAll'
 import Video from 'vue-material-design-icons/Video'
 import VideoOff from 'vue-material-design-icons/VideoOff'
+import Blur from 'vue-material-design-icons/Blur'
+import BlurOff from 'vue-material-design-icons/BlurOff'
 import Popover from '@nextcloud/vue/dist/Components/Popover'
 import Tooltip from '@nextcloud/vue/dist/Directives/Tooltip'
 import { PARTICIPANT } from '../../../constants'
@@ -249,6 +268,8 @@ export default {
 		VideoIcon: Video,
 		VideoOff,
 		Monitor,
+		Blur,
+		BlurOff,
 	},
 
 	props: {
@@ -289,11 +310,22 @@ export default {
 	},
 
 	computed: {
+		isVideoEffectsEnabled() {
+			return this.$store.getters.isVideoEffectsEnabled
+		},
+
 		raiseHandButtonLabel() {
 			if (!this.model.attributes.raisedHand.state) {
 				return t('spreed', 'Raise hand (R)')
 			}
 			return t('spreed', 'Lower hand (R)')
+		},
+
+		toggleVideoEffectsButtonLabel() {
+			if (!this.isVideoEffectsEnabled) {
+				return t('spreed', 'Blur my video')
+			}
+			return t('spreed', 'Disable blur')
 		},
 
 		conversation() {
@@ -639,6 +671,13 @@ export default {
 
 		setSpeakingWhileMutedNotification(message) {
 			this.speakingWhileMutedNotification = message
+		},
+
+		toggleVideoEffects() {
+			this.$store.dispatch(
+				'setVideoEffectsEnabled',
+				!this.$store.getters.isVideoEffectsEnabled,
+			)
 		},
 
 		toggleVideo() {

@@ -36,6 +36,7 @@ const state = {
 	qualityWarningTooltipDismissed: false,
 	participantRaisedHands: {},
 	backgroundImageAverageColorCache: {},
+	videoEffectsEnabled: false,
 }
 
 const getters = {
@@ -61,6 +62,7 @@ const getters = {
 	getCachedBackgroundImageAverageColor: (state) => (videoBackgroundId) => {
 		return state.backgroundImageAverageColorCache[videoBackgroundId]
 	},
+	isVideoEffectsEnabled: (state) => state.videoEffectsEnabled,
 }
 
 const mutations = {
@@ -105,6 +107,9 @@ const mutations = {
 	clearBackgroundImageAverageColorCache(state) {
 		state.backgroundImageAverageColorCache = {}
 	},
+	setVideoEffectsEnabled(state, enabled) {
+		state.videoEffectsEnabled = enabled
+	},
 }
 
 const actions = {
@@ -126,6 +131,9 @@ const actions = {
 		context.dispatch('setCallViewMode', { isGrid, isStripeOpen: true })
 
 		context.commit('setQualityWarningTooltipDismissed', { qualityWarningTooltipDismissed: false })
+
+		const enableVideoEffects = BrowserStorage.getItem('callprefs-' + token + '-videoeffectsenabled') === 'true'
+		context.dispatch('setVideoEffectsEnabled', enableVideoEffects)
 	},
 
 	leaveCall(context) {
@@ -220,6 +228,11 @@ const actions = {
 
 	dismissQualityWarningTooltip(context) {
 		context.commit('setQualityWarningTooltipDismissed', { qualityWarningTooltipDismissed: true })
+	},
+
+	setVideoEffectsEnabled(context, enabled) {
+		BrowserStorage.setItem('callprefs-' + context.getters.getToken() + '-videoeffectsenabled', enabled)
+		context.commit('setVideoEffectsEnabled', enabled)
 	},
 }
 
