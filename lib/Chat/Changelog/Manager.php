@@ -115,6 +115,10 @@ class Manager {
 			$this->l->t('- Give your conversations some context with a description and open it up so logged in users can find it and join themselves'),
 			$this->l->t('- See a read status and send failed messages again'),
 			$this->l->t('- Raise your hand in a call with the R key'),
+			$this->l->t('New in Talk %s', ['12']),
+			$this->l->t('- Join the same conversation and call from multiple devices'),
+			$this->l->t('- Send voice messages, share your location or contact details'),
+			$this->l->t('- Add groups to a conversation and new group members will automatically be added as participants'),
 		];
 	}
 }
