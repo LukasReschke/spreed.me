@@ -163,6 +163,17 @@ the main body of the message as well as a quote.
 								:href="linkToFile">
 								{{ t('spreed', 'Go to file') }}
 							</ActionLink>
+							<ActionButton
+								v-if="!isFileShare"
+								:close-after-click="true"
+								@click.stop="showForwarder = true">
+								<Share
+									slot="icon"
+									:size="16"
+									decorative
+									title="" />
+								{{ t('spreed', 'Forward message') }}
+							</ActionButton>
 							<ActionSeparator v-if="messageActions.length > 0" />
 							<template
 								v-for="action in messageActions">
@@ -194,6 +205,9 @@ the main body of the message as well as a quote.
 				<span>{{ t('spreed', 'Unread messages') }}</span>
 			</div>
 		</div>
+		<Forwarder v-if="showForwarder"
+			:message-object="messageObject"
+			@close="showForwarder = false" />
 	</li>
 </template>
 
@@ -214,6 +228,7 @@ import Check from 'vue-material-design-icons/Check'
 import CheckAll from 'vue-material-design-icons/CheckAll'
 import EyeOffOutline from 'vue-material-design-icons/EyeOffOutline'
 import Reload from 'vue-material-design-icons/Reload'
+import Share from 'vue-material-design-icons/Share'
 import Quote from '../../../Quote'
 import isInCall from '../../../../mixins/isInCall'
 import participant from '../../../../mixins/participant'
@@ -230,6 +245,7 @@ import {
 import { generateUrl } from '@nextcloud/router'
 import Location from './MessagePart/Location'
 import Contact from './MessagePart/Contact.vue'
+import Forwarder from './MessagePart/Forwarder'
 
 export default {
 	name: 'Message',
@@ -250,7 +266,9 @@ export default {
 		CheckAll,
 		EyeOffOutline,
 		Reload,
+		Share,
 		ActionSeparator,
+		Forwarder,
 	},
 
 	mixins: [
@@ -397,6 +415,8 @@ export default {
 			isDeleting: false,
 			// whether the message was seen, only used if this was marked as last read message
 			seen: false,
+			// Shows/hides the message forwarder component
+			showForwarder: false,
 		}
 	},
 
