@@ -35,6 +35,7 @@ import {
 	setConversationName,
 	setConversationDescription,
 	deleteConversation,
+	clearConversationHistory,
 	setNotificationLevel,
 } from '../services/conversationsService'
 import { getCurrentUser } from '@nextcloud/auth'
@@ -194,6 +195,25 @@ const actions = {
 		await deleteConversation(token)
 		// upon success, also delete from store
 		await context.dispatch('deleteConversation', token)
+	},
+
+	/**
+	 * Delete all the messages from a conversation.
+	 *
+	 * @param {object} context default store context;
+	 * @param {object} token the token of the conversation whose history is
+	 * to be cleared;
+	 */
+	async clearConversationHistory(context, { token }) {
+		try {
+			const response = await clearConversationHistory(token)
+			context.dispatch('deleteConversation', token)
+			return response
+		} catch (error) {
+			console.debug(
+				t('spreed', 'Error while clearing conversation history'),
+				error)
+		}
 	},
 
 	/**

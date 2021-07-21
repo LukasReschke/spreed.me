@@ -33,6 +33,11 @@
 			@click.prevent.exact="deleteConversation">
 			{{ t('spreed', 'Delete conversation') }}
 		</button>
+		<button
+			class="critical error"
+			@click.prevent.exact="clearChatHistory">
+			{{ t('spreed', 'Delete conversation') }}
+		</button>
 	</div>
 </template>
 
@@ -111,6 +116,35 @@ export default {
 					} catch (error) {
 						console.debug(`error while deleting conversation ${error}`)
 						showError(t('spreed', 'Error while deleting conversation'))
+					}
+				}.bind(this)
+			)
+		},
+
+		/**
+		 * Clears the chat history
+		 */
+		async clearChatHistory() {
+			OC.dialogs.confirm(
+				t('spreed', 'Do you really want to delete all messages for "{displayName}"?', this.conversation),
+				t('spreed', 'Delete all chat messages'),
+				async function(decision) {
+					if (!decision) {
+						return
+					}
+
+					if (this.token === this.$store.getters.getToken()) {
+						this.$router.push({ name: 'root' })
+						this.$store.dispatch('updateToken', '')
+					}
+
+					try {
+						await this.$store.dispatch('clearConversationHistory', { token: this.token })
+						// Close the settings
+						this.hideConversationSettings()
+					} catch (error) {
+						console.debug(`error while clearing chat history ${error}`)
+						showError(t('spreed', 'Error while clearing chat history'))
 					}
 				}.bind(this)
 			)
